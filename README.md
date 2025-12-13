@@ -74,6 +74,45 @@ Given there are fewer events available than the number requested
 When the user requests a higher number than available  
 Then the list will show only the available events
 
+--
+
+## Feature 4: Use the App When Offline
+
+**User Story**  
+As a user, I should be able to view the app and previously loaded events while offline, so that I can still browse information without an internet connection.
+
+**Scenarios (Gherkin)**
+
+**Scenario: Show an offline indicator when the connection is lost**  
+Given the app is online and showing events  
+When the device goes offline  
+Then an “Offline” indicator is shown  
+And the current list of events remains visible
+
+**Scenario: Open the app offline with cached data**  
+Given the user previously used the app online and event data was cached  
+When the user opens the app while offline  
+Then the app shows the last cached list of events  
+And a note explains that data may be outdated while offline
+
+**Scenario: Network-dependent actions are disabled offline**  
+Given the user is offline  
+When the user tries to search for a new city or refresh events  
+Then the action is prevented  
+And a message explains that an internet connection is required
+
+**Scenario: Sync when connection is restored**  
+Given the user is offline and viewing cached events  
+When the device comes back online  
+Then the app fetches the latest events  
+And the offline indicator disappears
+
+**Scenario: No cache available while offline**  
+Given the user has never loaded events before  
+And the device is offline  
+When the user opens the app  
+Then the app shows an informative message that no data is available yet
+
 ## Tech Stack
 - React + Vite
 - Jest (unit/integration tests)
