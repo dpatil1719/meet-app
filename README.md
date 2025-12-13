@@ -44,6 +44,36 @@ Then both events can remain expanded independently (unless the design specifies 
 
 ---
 
+---
+
+## Feature 3: Specify Number of Events
+
+**User Story**  
+As a user, I should be able to choose how many events are shown in the list, so that I can control how much information I see at once.
+
+**Scenarios (Gherkin)**
+
+**Scenario: Default number of events is 32**  
+Given the user has not set a custom number of events  
+When the event list loads  
+Then up to 32 events will be displayed by default
+
+**Scenario: User can change the number of events shown**  
+Given the event list is visible  
+When the user enters “10” in the “Number of events” input  
+Then the list will update to show up to 10 events
+
+**Scenario: Invalid values are handled gracefully**  
+Given the event list is visible  
+When the user enters an invalid value (e.g., empty, text, 0, or a negative number) in the “Number of events” input  
+Then a validation message will be shown  
+And the number of events will remain at the last valid value (or the default 32 if none was set)
+
+**Scenario: Large values cap at available events**  
+Given there are fewer events available than the number requested  
+When the user requests a higher number than available  
+Then the list will show only the available events
+
 ## Tech Stack
 - React + Vite
 - Jest (unit/integration tests)
