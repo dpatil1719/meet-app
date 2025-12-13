@@ -14,6 +14,40 @@ A React app for browsing upcoming events, built with Vite. This project follows 
 6. Display Charts Visualizing Event Details
 
 ---
+---
+
+## Feature 1: Filter Events by City
+
+**User Story**  
+As a user, I should be able to filter events by city so that I can see a list of events happening in that city.
+
+**Scenarios (Gherkin)**
+
+**Scenario: Show all cities when no city is searched**  
+Given the user has not searched for a city  
+When the user opens the app  
+Then the user should see a list of upcoming events from all cities
+
+**Scenario: Show city suggestions as the user types**  
+Given the main page is open  
+When the user starts typing in the city input  
+Then the user should see a list of city suggestions that match the text
+
+**Scenario: Selecting a suggested city applies the filter**  
+Given the user typed “Berlin” and a list of suggestions is visible  
+When the user selects “Berlin, Germany” from the suggestions  
+Then the city filter is set to “Berlin, Germany”  
+And the user sees a list of upcoming events in Berlin
+
+**Scenario: Clear the city filter** (optional)  
+Given a city filter is applied  
+When the user clears the city input  
+Then the app shows upcoming events from all cities again
+
+**Scenario: No results for an unknown city** (optional)  
+Given the user typed a city with no events  
+When the user applies the filter  
+Then the app shows an informative “No events found” message
 
 ## Feature 2: Show/Hide Event Details
 
