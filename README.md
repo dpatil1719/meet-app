@@ -144,6 +144,36 @@ Given the app is installed
 When the user uninstalls it from the OS/home screen  
 Then the app’s shortcut is removed
 
+
+---
+
+## Feature 6: Display Charts Visualizing Event Details
+
+**User Story**  
+As a user, I should see charts of event data so that I can quickly understand trends (e.g., events by city or category).
+
+**Scenarios (Gherkin)**
+
+**Scenario: Charts render after events load**  
+Given the app has successfully loaded a list of events  
+When the user views the dashboard or chart area  
+Then charts render using the aggregated event data
+
+**Scenario: Charts update when filtering by city**  
+Given charts are visible  
+And a list of events is shown for all cities  
+When the user filters events by a specific city  
+Then the charts update to reflect only that city’s events
+
+**Scenario: Charts handle no data gracefully**  
+Given the current filters return zero events  
+When the charts attempt to render  
+Then the charts display an empty state or “No data” message without errors
+
+**Scenario: Chart elements are labeled for accessibility**  
+Given charts are visible  
+When the user interacts with the chart (hover/focus)  
+Then labels/tooltips present readable values for categories and counts
 ## Tech Stack
 - React + Vite
 - Jest (unit/integration tests)
