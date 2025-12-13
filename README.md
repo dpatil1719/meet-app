@@ -113,6 +113,37 @@ And the device is offline
 When the user opens the app  
 Then the app shows an informative message that no data is available yet
 
+---
+
+## Feature 5: Add an App Shortcut to the Home Screen (PWA)
+
+**User Story**  
+As a user, I should be able to install the app to my home screen so that I can launch it like a native app.
+
+> Note: Installability and the install prompt are **browser/OS-controlled**. These scenarios are usually verified manually.
+
+**Scenarios (Gherkin)**
+
+**Scenario: App is installable when PWA criteria are met**  
+Given the app is served over HTTPS and includes a valid web app manifest and service worker  
+When the user visits the app in a supported browser  
+Then the browser marks the app as installable
+
+**Scenario: Browser shows an install option**  
+Given the app is installable  
+When the user opens the browser’s “Install” / “Add to Home Screen” option (or sees an install prompt)  
+Then the user can install the app
+
+**Scenario: Installed app launches from home screen**  
+Given the app has been installed  
+When the user opens it from the home screen/app list  
+Then it launches in a standalone window and loads cached assets if offline
+
+**Scenario: Uninstall removes the shortcut**  
+Given the app is installed  
+When the user uninstalls it from the OS/home screen  
+Then the app’s shortcut is removed
+
 ## Tech Stack
 - React + Vite
 - Jest (unit/integration tests)
