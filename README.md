@@ -142,3 +142,7 @@ As a user, I want to see charts that summarize events so that I can understand t
 **Then** it should visualize the count per genre
 
 ---
+
+## Architecture Diagram
+
+![Meet App architecture](./meet_app_serverless_arch.png)
