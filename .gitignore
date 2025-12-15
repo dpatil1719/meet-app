@@ -25,3 +25,13 @@ dist-ssr
 
 # Keep serverless work out of the repo for now
 auth-server/
+# build + deps
+node_modules
+dist
+coverage
+
+# os/editor cruft
+.DS_Store
+
+# env
+.env
