@@ -1,36 +1,39 @@
 import React, { useState } from 'react';
 
 const Event = ({ event }) => {
-  const [expanded, setExpanded] = useState(false);
-  if (!event) return <li />;
+  const [showDetails, setShowDetails] = useState(false);
+
+  const title = event?.summary || 'Untitled event';
+  // ✅ show start dateTime/date, or fallback to created
+  const when = event?.start?.dateTime || event?.start?.date || event?.created || '';
+  const location = event?.location || '';
+  const link = event?.htmlLink || event?.link || '';
+  const description =
+    typeof event?.description === 'string' && event.description.trim().length > 0
+      ? event.description
+      : 'No description available.';
 
   return (
     <li className="event">
-      <div className="event-summary">
-        <div>{event.summary}</div>
-        <div>{event.created}</div>
-        <div>{event.location}</div>
-      </div>
+      <h3>{title}</h3>
+      <p>{when}</p>
+      <p>{location}</p>
 
-      {expanded && (
-        <div data-testid="details" className="event-details">
-          {event.description && <p>{event.description}</p>}
-          {event.htmlLink && (
-            <p>
-              <a href={event.htmlLink} target="_blank" rel="noreferrer">
-                Event link
-              </a>
-            </p>
+      {showDetails && (
+        <div className="details" data-testid="details">
+          {link && (
+            <a href={link} target="_blank" rel="noreferrer">Event link</a>
           )}
+          <p className="description">{description}</p>
         </div>
       )}
 
       <button
         type="button"
-        onClick={() => setExpanded((prev) => !prev)}
-        aria-expanded={expanded}
+        className="details-btn"
+        onClick={() => setShowDetails(prev => !prev)}
       >
-        {expanded ? 'Hide details' : 'Show details'}
+        {showDetails ? 'Hide details' : 'Show details'}
       </button>
     </li>
   );
