@@ -12,7 +12,7 @@ export const extractLocations = (events) => {
 };
 
 /** Clean ?code=... off the URL after login */
-const removeQuery = () => {
+export const removeQuery = () => {
   let newurl;
   if (window.history.pushState && window.location.pathname) {
     newurl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
@@ -82,3 +82,5 @@ export const getEvents = async () => {
   const result = await response.json();
   return result?.events ?? [];
 };
+
+export { removeQuery };
