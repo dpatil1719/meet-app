@@ -1,43 +1,46 @@
 import mockData from './mock-data';
 
-/** Return unique list of locations from events */
+/** Your Lambda endpoints (from serverless info) */
+const AUTH_URL = 'https://vzrkz05uzc.execute-api.eu-central-1.amazonaws.com/dev/api/get-auth-url';
+const GET_EVENTS_URL = 'https://vzrkz05uzc.execute-api.eu-central-1.amazonaws.com/dev/api/get-events';
+const GET_TOKEN_URL = 'https://vzrkz05uzc.execute-api.eu-central-1.amazonaws.com/dev/api/token';
+
+/** Extract unique locations from events */
 export const extractLocations = (events) => {
-  const extracted = events.map((e) => e.location);
-  return [...new Set(extracted)];
+  const locations = events?.map((e) => e.location) ?? [];
+  return [...new Set(locations)];
 };
 
-/** Verify an access token with Google */
-const checkToken = async (accessToken) => {
-  const res = await fetch(
-    `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`
-  );
-  return res.json();
-};
-
-/** Clean query params (e.g., ?code=...) from the URL */
+/** Clean ?code=... off the URL after login */
 const removeQuery = () => {
   let newurl;
   if (window.history.pushState && window.location.pathname) {
-    newurl = window.location.protocol + '//' + window.location.host + window.location.pathname;
+    newurl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
     window.history.pushState('', '', newurl);
   } else {
-    newurl = window.location.protocol + '//' + window.location.host;
+    newurl = `${window.location.protocol}//${window.location.host}`;
     window.history.pushState('', '', newurl);
   }
 };
 
-/** Exchange auth code for access token via your Lambda */
+/** Exchange Google auth code for access token (uses GET_TOKEN_URL) */
 const getToken = async (code) => {
   const encodeCode = encodeURIComponent(code);
-  const res = await fetch(
-    'https://vzrkz05uzc.execute-api.eu-central-1.amazonaws.com/dev/api/token' + '/' + encodeCode
-  );
-  const { access_token } = await res.json();
+  const response = await fetch(`${GET_TOKEN_URL}/${encodeCode}`);
+  const { access_token } = await response.json();
   if (access_token) localStorage.setItem('access_token', access_token);
   return access_token;
 };
 
-/** Get (or fetch) a valid access token */
+/** Verify an access token is still valid */
+const checkToken = async (accessToken) => {
+  const response = await fetch(
+    `https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=${accessToken}`
+  );
+  return response.json();
+};
+
+/** Get (or kick off getting) an access token (uses AUTH_URL) */
 export const getAccessToken = async () => {
   const accessToken = localStorage.getItem('access_token');
   const tokenCheck = accessToken && (await checkToken(accessToken));
@@ -47,37 +50,35 @@ export const getAccessToken = async () => {
 
     const searchParams = new URLSearchParams(window.location.search);
     const code = searchParams.get('code');
+
+    // No code yet? redirect to Google via your auth server
     if (!code) {
-      // redirect user to Google consent via your Lambda
-      const response = await fetch(
-        'https://vzrkz05uzc.execute-api.eu-central-1.amazonaws.com/dev/api/get-auth-url'
-      );
+      const response = await fetch(AUTH_URL);
       const { authUrl } = await response.json();
-      window.location.href = authUrl;
+      window.location.href = authUrl; // redirect; returns null in tests
       return null;
     }
+
+    // We have a code → exchange for token
     return getToken(code);
   }
 
+  // Token already valid
   return accessToken;
 };
 
-/** Fetch events: mock data on localhost, real data when deployed */
+/** Fetch events: mock on localhost, real API otherwise (uses GET_EVENTS_URL) */
 export const getEvents = async () => {
   if (window.location.href.startsWith('http://localhost')) {
-    return mockData; // keeps Jest tests & local dev fast
+    return mockData;
   }
 
   const token = await getAccessToken();
   if (!token) return [];
 
   removeQuery();
-  const url =
-    'https://vzrkz05uzc.execute-api.eu-central-1.amazonaws.com/dev/api/get-events' +
-    '/' +
-    token;
-
-  const res = await fetch(url);
-  const result = await res.json();
+  const url = `${GET_EVENTS_URL}/${token}`;
+  const response = await fetch(url);
+  const result = await response.json();
   return result?.events ?? [];
 };
