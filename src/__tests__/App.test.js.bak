@@ -1,0 +1,42 @@
+import userEvent from "@testing-library/user-event";
+import React from 'react';
+import { render } from '@testing-library/react';
+import '@testing-library/jest-dom';
+import App from '../App';
+
+describe('<App /> component', () => {
+  let AppDOM;
+
+  beforeEach(() => {
+    AppDOM = render(<App />).container.firstChild;
+  });
+
+  test('renders list of events', () => {
+    expect(AppDOM.querySelector('#event-list')).toBeInTheDocument();
+  });
+
+  test('render CitySearch', () => {
+    expect(AppDOM.querySelector('#city-search')).toBeInTheDocument();
+  });
+});
+
+describe('<App /> integration — NumberOfEvents', () => {
+  test('updates the rendered list length when the NumberOfEvents input changes', async () => {
+    const { container } = render(<App />);
+    const user = userEvent.setup();
+
+    // Find the NumberOfEvents input. Assuming you used an outer div with id="number-of-events"
+    const noeRoot = container.querySelector('#number-of-events');
+    const input = noeRoot?.querySelector('input') ?? noeRoot;
+
+    expect(input).toBeInTheDocument();
+
+    // Clear the default "32" then type "10"
+    await user.click(input);
+    await user.type(input, '{backspace}{backspace}10');
+
+    // Count rendered events (li inside #event-list)
+    const items = container.querySelectorAll('#event-list li');
+    expect(items.length).toBe(10);
+  });
+});
