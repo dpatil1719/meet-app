@@ -83,4 +83,3 @@ export const getEvents = async () => {
   return result?.events ?? [];
 };
 
-export { removeQuery };
