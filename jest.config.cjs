@@ -7,5 +7,5 @@ module.exports = {
     '\\.(css|less|scss|sass)$': 'identity-obj-proxy', // mock CSS imports
   },
   moduleFileExtensions: ['js', 'jsx'],
-  setupFilesAfterEnv: ['<rootDir>/setupTests.js'], // will create next
+  setupFilesAfterEnv: ['<rootDir>/src/setupTests.js'], // will create next
 };
