@@ -1,18 +1,31 @@
 import React, { useState, useEffect } from 'react';
 
 const NumberOfEvents = ({ currentNOE = 32, setCurrentNOE }) => {
-  const [number, setNumber] = useState(currentNOE ?? 32);
+  const [number, setNumber] = useState(String(currentNOE ?? 32));
 
   useEffect(() => {
-    // keep local field in sync if parent changes
-    setNumber(currentNOE ?? 32);
-  }, [`${currentNOE}`]);
+    setNumber(String(currentNOE ?? 32));
+  }, [currentNOE]);
+
+  const clamp = (n) => Math.max(1, Math.min(60, n)); // 1..60 guard
 
   const handleChange = (e) => {
-    const raw = e.target.value;
-    setNumber(raw); // allow backspacing
-    const n = Number(raw);
-    if (setCurrentNOE) setCurrentNOE(Number.isNaN(n) ? 0 : n);
+    const raw = e.target.value.replace(/[^\d]/g, '');
+    setNumber(raw);
+    if (raw !== '') {
+      const n = clamp(parseInt(raw, 10));
+      setCurrentNOE?.(n);
+    }
+  };
+
+  const handleBlur = () => {
+    const n = number === '' ? 1 : clamp(parseInt(number, 10));
+    setNumber(String(n));
+    setCurrentNOE?.(n);
+  };
+
+  const preventStep = (e) => {
+    if (e.deltaY || e.key === 'ArrowDown') e.preventDefault();
   };
 
   return (
@@ -24,6 +37,15 @@ const NumberOfEvents = ({ currentNOE = 32, setCurrentNOE }) => {
         placeholder="Number of events"
         value={number}
         onChange={handleChange}
+        onBlur={handleBlur}
+        onWheel={preventStep}
+        onKeyDown={(e) => {
+          if (e.key === 'ArrowDown') e.preventDefault();
+        }}
+        min="1"
+        max="60"
+        inputMode="numeric"
+        pattern="\d*"
       />
     </div>
   );
