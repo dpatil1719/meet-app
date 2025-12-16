@@ -11,16 +11,13 @@ export const extractLocations = (events) => {
   return [...new Set(locations)];
 };
 
-/** Clean ?code=... off the URL after login */
-export const removeQuery = () => {
-  let newurl;
-  if (window.history.pushState && window.location.pathname) {
-    newurl = `${window.location.protocol}//${window.location.host}${window.location.pathname}`;
-    window.history.pushState('', '', newurl);
-  } else {
-    newurl = `${window.location.protocol}//${window.location.host}`;
-    window.history.pushState('', '', newurl);
-  }
+/** Clean ?code=... off the URL after login (DI-friendly for tests) */
+export const removeQuery = (loc = window.location, hist = window.history) => {
+  if (!hist || typeof hist.pushState !== 'function' || !loc) return;
+  const hasPath = typeof loc.pathname === 'string' && loc.pathname.length > 0;
+  const base = `${loc.protocol}//${loc.host}`;
+  const newUrl = hasPath ? `${base}${loc.pathname}` : base;
+  hist.pushState('', '', newUrl);
 };
 
 /** Exchange Google auth code for access token (uses GET_TOKEN_URL) */
@@ -82,4 +79,3 @@ export const getEvents = async () => {
   const result = await response.json();
   return result?.events ?? [];
 };
-
