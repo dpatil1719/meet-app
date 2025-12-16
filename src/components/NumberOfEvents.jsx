@@ -1,59 +1,47 @@
 import React, { useState, useEffect } from 'react';
 
-const NumberOfEvents = ({ currentNOE = 32, setCurrentNOE }) => {
-  const [number, setNumber] = useState(String(currentNOE ?? 32));
+export default function NumberOfEvents({ currentNOE = 32, setCurrentNOE }) {
+  const [text, setText] = useState(String(currentNOE ?? 32));
 
+  // keep the input in sync with parent state
   useEffect(() => {
-    setNumber(String(currentNOE ?? 32));
+    setText(String(currentNOE ?? 32));
   }, [currentNOE]);
 
-  const clamp = (n) => Math.max(1, Math.min(60, n)); // 1..60
-
-  const handleChange = (e) => {
-    // digits only
-    const raw = e.target.value.replace(/[^\d]/g, '');
-    if (raw === '') {
-      setNumber('');
-      return;
+  // allow only digits while typing; don't coerce mid–type
+  const onChange = (e) => {
+    const next = e.target.value;
+    if (/^\d*$/.test(next)) {
+      setText(next);
+      if (next !== '') {
+        const n = parseInt(next, 10);
+        if (!Number.isNaN(n)) setCurrentNOE?.(n);
+      }
     }
-    // normalize: drop leading zeros (e.g., "05" -> "5")
-    const normalized = String(parseInt(raw, 10));
-    setNumber(normalized);
-    setCurrentNOE?.(clamp(parseInt(normalized, 10)));
   };
 
-  const handleBlur = () => {
-    const n = number === '' ? 1 : clamp(parseInt(number, 10));
-    setNumber(String(n));
+  // clamp once the user finishes editing
+  const onBlur = () => {
+    let n = parseInt(text, 10);
+    if (Number.isNaN(n)) n = 32;
+    n = Math.max(1, Math.min(60, n));
+    if (String(n) !== text) setText(String(n));
     setCurrentNOE?.(n);
-  };
-
-  // stop scroll/arrow from stepping into negatives
-  const preventStep = (e) => {
-    if (e.deltaY || e.key === 'ArrowDown') e.preventDefault();
   };
 
   return (
     <div id="number-of-events">
       <input
-        type="number"
+        type="text"            /* avoid number-input coercion */
+        inputMode="numeric"
+        pattern="\\d*"
         className="number"
         aria-label="Number of events"
         placeholder="Number of events"
-        value={number}
-        onChange={handleChange}
-        onBlur={handleBlur}
-        onWheel={preventStep}
-        onKeyDown={(e) => {
-          if (e.key === 'ArrowDown') e.preventDefault();
-        }}
-        min="1"
-        max="60"
-        inputMode="numeric"
-        pattern="\d*"
+        value={text}
+        onChange={onChange}
+        onBlur={onBlur}
       />
     </div>
   );
-};
-
-export default NumberOfEvents;
+}
