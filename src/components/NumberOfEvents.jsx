@@ -7,15 +7,19 @@ const NumberOfEvents = ({ currentNOE = 32, setCurrentNOE }) => {
     setNumber(String(currentNOE ?? 32));
   }, [currentNOE]);
 
-  const clamp = (n) => Math.max(1, Math.min(60, n)); // 1..60 guard
+  const clamp = (n) => Math.max(1, Math.min(60, n)); // 1..60
 
   const handleChange = (e) => {
+    // digits only
     const raw = e.target.value.replace(/[^\d]/g, '');
-    setNumber(raw);
-    if (raw !== '') {
-      const n = clamp(parseInt(raw, 10));
-      setCurrentNOE?.(n);
+    if (raw === '') {
+      setNumber('');
+      return;
     }
+    // normalize: drop leading zeros (e.g., "05" -> "5")
+    const normalized = String(parseInt(raw, 10));
+    setNumber(normalized);
+    setCurrentNOE?.(clamp(parseInt(normalized, 10)));
   };
 
   const handleBlur = () => {
@@ -24,6 +28,7 @@ const NumberOfEvents = ({ currentNOE = 32, setCurrentNOE }) => {
     setCurrentNOE?.(n);
   };
 
+  // stop scroll/arrow from stepping into negatives
   const preventStep = (e) => {
     if (e.deltaY || e.key === 'ArrowDown') e.preventDefault();
   };
