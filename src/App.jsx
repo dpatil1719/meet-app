@@ -6,25 +6,30 @@ import { getEvents, extractLocations } from './api';
 import './App.css';
 
 const App = () => {
+  const [allEvents, setAllEvents] = useState([]);
   const [events, setEvents] = useState([]);
   const [currentNOE, setCurrentNOE] = useState(32);
   const [allLocations, setAllLocations] = useState([]);
   const [currentCity, setCurrentCity] = useState('See all cities');
 
-  const fetchData = async () => {
-    const allEvents = await getEvents();
+  // Fetch ONCE, cache all events
+  useEffect(() => {
+    (async () => {
+      const evts = await getEvents();
+      setAllEvents(evts);
+      setAllLocations(extractLocations(evts));
+    })();
+  }, []);
+
+  // Derive visible events whenever city or NOE changes
+  useEffect(() => {
+    const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
     const filtered =
       currentCity === 'See all cities'
         ? allEvents
         : allEvents.filter((e) => e.location === currentCity);
-    setEvents(filtered.slice(0, currentNOE));
-    setAllLocations(extractLocations(allEvents));
-  };
-
-  useEffect(() => {
-    fetchData();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [currentCity, currentNOE]);
+    setEvents(filtered.slice(0, limit));
+  }, [allEvents, currentCity, currentNOE]);
 
   return (
     <div className="App">
