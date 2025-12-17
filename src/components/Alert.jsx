@@ -7,21 +7,26 @@ class Alert extends Component {
     this.bgColor = null;
   }
 
-  getStyle = () => ({
-    color: this.color,
-    backgroundColor: this.bgColor,
-    borderWidth: '2px',
-    borderStyle: 'solid',
-    fontWeight: 'bolder',
-    borderRadius: '7px',
-    borderColor: this.color,
-    textAlign: 'center',
-    fontSize: '12px',
-    margin: '10px 0',
-    padding: '10px',
-  });
+  getStyle = () => {
+    return {
+      color: this.color,
+      backgroundColor: this.bgColor,
+      borderWidth: '2px',
+      borderStyle: 'solid',
+      fontWeight: 'bolder',
+      borderRadius: '7px',
+      borderColor: this.color,
+      textAlign: 'center',
+      fontSize: '12px',
+      margin: '10px 0',
+      padding: '10px'
+    };
+  };
 
   render() {
+    // Do not render anything if there's no text to show
+    if (!this.props.text) return null;
+
     return (
       <div className="Alert">
         <p style={this.getStyle()}>{this.props.text}</p>
@@ -38,12 +43,20 @@ class InfoAlert extends Alert {
   }
 }
 
+class WarningAlert extends Alert {
+  constructor(props) {
+    super(props);
+    this.color = 'rgb(255, 140, 0)';      // orange
+    this.bgColor = 'rgb(255, 235, 205)';  // light orange (blanchedalmond)
+  }
+}
+
 class ErrorAlert extends Alert {
   constructor(props) {
     super(props);
     this.color = 'rgb(255, 0, 0)';        // red
-    this.bgColor = 'rgb(255, 230, 230)';  // light red
+    this.bgColor = 'rgb(255, 220, 220)';  // light red
   }
 }
 
-export { InfoAlert, ErrorAlert };
+export { Alert, InfoAlert, WarningAlert, ErrorAlert };
