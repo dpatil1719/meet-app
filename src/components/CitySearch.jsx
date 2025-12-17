@@ -1,23 +1,33 @@
 import React, { useState } from 'react';
 
-const CitySearch = ({ allLocations = [] }) => {
-  const [showSuggestions, setShowSuggestions] = useState(false);
+const CitySearch = ({ allLocations = [], setCurrentCity, setInfoAlert }) => {
   const [query, setQuery] = useState('');
   const [suggestions, setSuggestions] = useState([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
 
   const handleInputChanged = (event) => {
     const value = event.target.value;
     setQuery(value);
+
     const filtered = allLocations.filter((loc) =>
       loc.toUpperCase().includes(value.toUpperCase())
     );
     setSuggestions(filtered);
+    setShowSuggestions(true);
+
+    if (value && filtered.length === 0) {
+      setInfoAlert?.('We can not find the city you are looking for. Please try another city');
+    } else {
+      setInfoAlert?.('');
+    }
   };
 
   const handleItemClicked = (event) => {
-    const value = event.target.textContent; // e.g., "Berlin, Germany"
+    const value = event.target.textContent;
     setQuery(value);
-    setShowSuggestions(false); // hide list after selecting
+    setShowSuggestions(false);
+    setCurrentCity?.(value);
+    setInfoAlert?.('');
   };
 
   return (
@@ -30,7 +40,7 @@ const CitySearch = ({ allLocations = [] }) => {
         onFocus={() => setShowSuggestions(true)}
         onChange={handleInputChanged}
       />
-      {showSuggestions ? (
+      {showSuggestions && (
         <ul className="suggestions">
           {suggestions.map((s) => (
             <li key={s} onClick={handleItemClicked}>
@@ -38,10 +48,10 @@ const CitySearch = ({ allLocations = [] }) => {
             </li>
           ))}
           <li key="See all cities" onClick={handleItemClicked}>
-            <b>See all cities</b>
+            See all cities
           </li>
         </ul>
-      ) : null}
+      )}
     </div>
   );
 };

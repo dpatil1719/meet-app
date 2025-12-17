@@ -13,11 +13,11 @@ const App = () => {
   const [allLocations, setAllLocations] = useState([]);
   const [currentCity, setCurrentCity] = useState('See all cities');
 
-  // NEW: alert texts
+  // alerts
   const [infoAlert, setInfoAlert] = useState('');
   const [errorAlert, setErrorAlert] = useState('');
 
-  // fetch once
+  // Fetch once, cache
   useEffect(() => {
     (async () => {
       const evts = await getEvents();
@@ -26,7 +26,7 @@ const App = () => {
     })();
   }, []);
 
-  // derive visible events
+  // Derive visible events whenever filters change
   useEffect(() => {
     const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
     const filtered =
@@ -38,22 +38,21 @@ const App = () => {
 
   return (
     <div className="App">
-      {/* alerts container */}
       <div className="alerts-container">
-        {infoAlert && <InfoAlert text={infoAlert} />}
-        {errorAlert && <ErrorAlert text={errorAlert} />}
+        {infoAlert ? <InfoAlert text={infoAlert} /> : null}
+        {errorAlert ? <ErrorAlert text={errorAlert} /> : null}
       </div>
 
       <CitySearch
         allLocations={allLocations}
         setCurrentCity={setCurrentCity}
-        setInfoAlert={setInfoAlert}   // show "no city" info
+        setInfoAlert={setInfoAlert}
       />
 
       <NumberOfEvents
         currentNOE={currentNOE}
         setCurrentNOE={setCurrentNOE}
-        setErrorAlert={setErrorAlert} // show invalid number error
+        setErrorAlert={setErrorAlert}
       />
 
       <EventList events={events} />
