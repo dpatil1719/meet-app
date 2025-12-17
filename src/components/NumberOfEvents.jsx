@@ -1,47 +1,46 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 
-export default function NumberOfEvents({ currentNOE = 32, setCurrentNOE }) {
-  const [text, setText] = useState(String(currentNOE ?? 32));
+const NumberOfEvents = ({ currentNOE = 32, setCurrentNOE, setErrorAlert }) => {
+  const [input, setInput] = useState(String(currentNOE ?? 32));
 
-  // keep the input in sync with parent state
   useEffect(() => {
-    setText(String(currentNOE ?? 32));
+    setInput(String(currentNOE ?? 32));
   }, [currentNOE]);
 
-  // allow only digits while typing; don't coerce mid–type
-  const onChange = (e) => {
-    const next = e.target.value;
-    if (/^\d*$/.test(next)) {
-      setText(next);
-      if (next !== '') {
-        const n = parseInt(next, 10);
-        if (!Number.isNaN(n)) setCurrentNOE?.(n);
-      }
-    }
-  };
+  const handleChange = (e) => {
+    const raw = e.target.value;
+    setInput(raw);
 
-  // clamp once the user finishes editing
-  const onBlur = () => {
-    let n = parseInt(text, 10);
-    if (Number.isNaN(n)) n = 32;
-    n = Math.max(1, Math.min(60, n));
-    if (String(n) !== text) setText(String(n));
+    if (raw === '') {
+      // allow clearing while typing; don't update global state yet
+      setErrorAlert?.('');
+      return;
+    }
+
+    const n = Number(raw);
+
+    if (Number.isNaN(n) || n <= 0) {
+      setErrorAlert?.('Please enter a positive number.');
+      return;
+    }
+
+    setErrorAlert?.('');
     setCurrentNOE?.(n);
   };
 
   return (
     <div id="number-of-events">
       <input
-        type="text"            /* avoid number-input coercion */
-        inputMode="numeric"
-        pattern="\\d*"
+        type="number"
         className="number"
         aria-label="Number of events"
         placeholder="Number of events"
-        value={text}
-        onChange={onChange}
-        onBlur={onBlur}
+        value={input === '' ? '' : Number(input)}
+        onChange={handleChange}
+        min="1"
       />
     </div>
   );
-}
+};
+
+export default NumberOfEvents;

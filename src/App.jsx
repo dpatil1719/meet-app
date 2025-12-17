@@ -3,6 +3,7 @@ import CitySearch from './components/CitySearch';
 import EventList from './components/EventList';
 import NumberOfEvents from './components/NumberOfEvents';
 import { getEvents, extractLocations } from './api';
+import { InfoAlert, ErrorAlert } from './components/Alert';
 import './App.css';
 
 const App = () => {
@@ -12,7 +13,11 @@ const App = () => {
   const [allLocations, setAllLocations] = useState([]);
   const [currentCity, setCurrentCity] = useState('See all cities');
 
-  // Fetch ONCE, cache all events
+  // NEW: alert texts
+  const [infoAlert, setInfoAlert] = useState('');
+  const [errorAlert, setErrorAlert] = useState('');
+
+  // fetch once
   useEffect(() => {
     (async () => {
       const evts = await getEvents();
@@ -21,7 +26,7 @@ const App = () => {
     })();
   }, []);
 
-  // Derive visible events whenever city or NOE changes
+  // derive visible events
   useEffect(() => {
     const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
     const filtered =
@@ -33,8 +38,24 @@ const App = () => {
 
   return (
     <div className="App">
-      <CitySearch allLocations={allLocations} setCurrentCity={setCurrentCity} />
-      <NumberOfEvents currentNOE={currentNOE} setCurrentNOE={setCurrentNOE} />
+      {/* alerts container */}
+      <div className="alerts-container">
+        {infoAlert && <InfoAlert text={infoAlert} />}
+        {errorAlert && <ErrorAlert text={errorAlert} />}
+      </div>
+
+      <CitySearch
+        allLocations={allLocations}
+        setCurrentCity={setCurrentCity}
+        setInfoAlert={setInfoAlert}   // show "no city" info
+      />
+
+      <NumberOfEvents
+        currentNOE={currentNOE}
+        setCurrentNOE={setCurrentNOE}
+        setErrorAlert={setErrorAlert} // show invalid number error
+      />
+
       <EventList events={events} />
     </div>
   );

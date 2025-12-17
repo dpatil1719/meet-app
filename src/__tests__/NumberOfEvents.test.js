@@ -19,13 +19,21 @@ describe('<NumberOfEvents />', () => {
   test('user can change the value', async () => {
     const user = userEvent.setup();
     const setCurrentNOE = jest.fn();
-    const { getByRole } = render(<NumberOfEvents setCurrentNOE={setCurrentNOE} />);
+    const setErrorAlert = jest.fn();
+
+    const { getByRole } = render(
+      <NumberOfEvents
+        setCurrentNOE={setCurrentNOE}
+        setErrorAlert={setErrorAlert}
+      />
+    );
     const input = getByRole('spinbutton', { name: /number of events/i });
 
     await user.clear(input);
     await user.type(input, '10');
 
-    expect(input).toHaveValue(10);       // numeric
+    expect(input).toHaveValue(10);           // numeric
+    expect(setErrorAlert).toHaveBeenLastCalledWith(''); // cleared on valid input
     expect(setCurrentNOE).toHaveBeenLastCalledWith(10);
   });
 });
