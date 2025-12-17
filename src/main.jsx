@@ -10,15 +10,5 @@ ReactDOM.createRoot(document.getElementById('root')).render(
   </React.StrictMode>,
 );
 
-serviceWorkerRegistration.register({
-  onUpdate(reg) {
-    if (reg && reg.waiting) {
-      reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-      reg.waiting.addEventListener('statechange', (e) => {
-        if (e.target.state === 'activated') {
-          window.location.reload();
-        }
-      });
-    }
-  },
-});
+// Simple register without auto-reload hooks (prevents reload loops)
+serviceWorkerRegistration.register();
