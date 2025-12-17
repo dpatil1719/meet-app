@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import CitySearch from './components/CitySearch';
 import EventList from './components/EventList';
 import NumberOfEvents from './components/NumberOfEvents';
@@ -13,104 +13,85 @@ const App = () => {
   const [currentCity, setCurrentCity] = useState('See all cities');
   const [currentNOE, setCurrentNOE] = useState(32);
 
-  // alerts
+  // Alerts
   const [infoMsg, setInfoMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const [warningMsg, setWarningMsg] = useState('');
+  const [warnMsg, setWarnMsg] = useState('');
 
-  // loading + first fetch completion
+  // Loading gate
   const [loading, setLoading] = useState(true);
-  const [ready, setReady] = useState(false); // becomes true after first fetch completes
 
-  // First load: fetch events (your api.js already handles localStorage/offline)
+  // Fetch all events once (mount)
   useEffect(() => {
-    let cancelled = false;
+    let alive = true;
     (async () => {
       setLoading(true);
       setErrorMsg('');
       try {
-        const evts = (await getEvents()) || [];
-        if (cancelled) return;
-        setAllEvents(evts);
-        setAllLocations(extractLocations(evts));
-      } catch (e) {
-        if (cancelled) return;
-        setErrorMsg('Could not load events. Please try again.');
+        const evts = await getEvents();
+        if (!alive) return;
+        setAllEvents(evts || []);
+        setAllLocations(extractLocations(evts || []));
+      } catch (err) {
+        if (!alive) return;
+        setErrorMsg('Could not load events. Please refresh or try again later.');
         setAllEvents([]);
         setAllLocations([]);
       } finally {
-        if (!cancelled) {
-          setLoading(false);
-          setReady(true); // mark that our first fetch finished (even if it returned 0)
-        }
+        if (alive) setLoading(false);
       }
     })();
-    return () => { cancelled = true; };
+    return () => {
+      alive = false;
+    };
   }, []);
 
-  // derive filtered list + limit
-  const limit = useMemo(
-    () => Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32)),
-    [currentNOE]
-  );
-
-  const filtered = useMemo(() => {
-    return currentCity === 'See all cities'
-      ? allEvents
-      : allEvents.filter((e) => e.location === currentCity);
-  }, [allEvents, currentCity]);
-
+  // Derive visible events and set the "Only X events..." info (but not while loading)
   useEffect(() => {
-    setEvents(filtered.slice(0, limit));
-  }, [filtered, limit]);
+    const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
 
-  const totalAvailable = filtered.length;
+    const pool =
+      currentCity === 'See all cities'
+        ? allEvents
+        : allEvents.filter((e) => e.location === currentCity);
 
-  // InfoAlert: only AFTER first fetch is done AND there are events to compare against
-  useEffect(() => {
-    if (ready && totalAvailable > 0 && limit > totalAvailable) {
-      setInfoMsg(`Only ${totalAvailable} events available. Showing all available.`);
-    } else {
-      setInfoMsg('');
+    setEvents(pool.slice(0, limit));
+
+    if (!loading) {
+      setInfoMsg(limit > pool.length && pool.length >= 0
+        ? `Only ${pool.length} events available. Showing all available.`
+        : '');
     }
-  }, [ready, totalAvailable, limit]);
+  }, [allEvents, currentCity, currentNOE, loading]);
 
-  // Offline warning per lesson
+  // Offline warning
   useEffect(() => {
-    setWarningMsg(
-      navigator.onLine
-        ? ''
-        : 'You are offline. Showing cached events (may be outdated).'
-    );
-  }, [currentCity, currentNOE]);
+    setWarnMsg(navigator.onLine ? '' : 'You are offline. Showing cached events (may be outdated).');
+  }, [currentCity, currentNOE, loading]);
 
   return (
     <div className="App">
-      <div className="alerts-container" aria-live="polite">
-        {warningMsg && <WarningAlert text={warningMsg} />}
+      <div className="alerts-container">
         {errorMsg && <ErrorAlert text={errorMsg} />}
-        {/* extra guard: never show the info alert unless some events are actually on screen */}
-        {infoMsg && events.length > 0 && <InfoAlert text={infoMsg} />}
+        {warnMsg && <WarningAlert text={warnMsg} />}
+        {!loading && infoMsg && <InfoAlert text={infoMsg} />}
       </div>
 
       <CitySearch
         allLocations={allLocations}
         setCurrentCity={setCurrentCity}
-        setErrorAlert={setErrorMsg}
       />
 
+      <label htmlFor="noe" className="sr-only">Number of events</label>
       <NumberOfEvents
         currentNOE={currentNOE}
         setCurrentNOE={setCurrentNOE}
         setErrorAlert={setErrorMsg}
       />
 
-      {/* show loading helper only if nothing is rendered yet */}
-      {loading && events.length === 0 && (
-        <p role="status" style={{ opacity: 0.8, textAlign: 'center', marginTop: 8 }}>
-          Loading events…
-        </p>
-      )}
+      {loading && events.length === 0 ? (
+        <p className="loading">Loading events...</p>
+      ) : null}
 
       <EventList events={events} />
     </div>
