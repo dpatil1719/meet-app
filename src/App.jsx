@@ -13,11 +13,11 @@ const App = () => {
   const [allLocations, setAllLocations] = useState([]);
   const [currentCity, setCurrentCity] = useState('See all cities');
 
-  // alerts
+  // Alerts
   const [infoAlert, setInfoAlert] = useState('');
   const [errorAlert, setErrorAlert] = useState('');
 
-  // Fetch once, cache
+  // Fetch once, cache all events + locations
   useEffect(() => {
     (async () => {
       const evts = await getEvents();
@@ -26,21 +26,40 @@ const App = () => {
     })();
   }, []);
 
-  // Derive visible events whenever filters change
+  // Derive visible events whenever city or NOE changes
   useEffect(() => {
-    const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
     const filtered =
       currentCity === 'See all cities'
         ? allEvents
         : allEvents.filter((e) => e.location === currentCity);
+
+    const available = filtered.length;
+
+    const parsed = parseInt(currentNOE, 10);
+    const desired = Number.isFinite(parsed) ? parsed : 32;
+
+    // Final limit: at least 1, at most 60, and never more than available
+    const limit = Math.max(1, Math.min(60, Math.min(desired, available)));
+
+    // If user asked for more than available, show a friendly error
+    if (desired > available) {
+      const suffix = currentCity === 'See all cities' ? '' : ' for this city';
+      setErrorAlert(
+        `Only ${available} event${available === 1 ? '' : 's'} available${suffix}. Showing all available.`
+      );
+    } else {
+      // Only clear the "Only X events..." message; keep other error types from NumberOfEvents
+      setErrorAlert((prev) => (prev.startsWith('Only ') ? '' : prev));
+    }
+
     setEvents(filtered.slice(0, limit));
   }, [allEvents, currentCity, currentNOE]);
 
   return (
     <div className="App">
       <div className="alerts-container">
-        {infoAlert ? <InfoAlert text={infoAlert} /> : null}
-        {errorAlert ? <ErrorAlert text={errorAlert} /> : null}
+        {infoAlert.length ? <InfoAlert text={infoAlert} /> : null}
+        {errorAlert.length ? <ErrorAlert text={errorAlert} /> : null}
       </div>
 
       <CitySearch
