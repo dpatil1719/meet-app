@@ -431,3 +431,52 @@ button:hover { background: rgba(255,255,255,0.12); }
 .recharts-legend-item-text{
   color: rgba(255,255,255,.9) !important;
 }
+
+/* ===== Charts layout ===== */
+.charts-container {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr; /* more room for pie labels */
+  gap: 28px;
+  align-items: center;
+  margin-top: 16px;
+}
+
+.chart-card {
+  width: 100%;
+  background: transparent;
+}
+
+.chart-card.empty {
+  color: #94a3b8;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 340px;
+  border: 1px dashed #334155;
+  border-radius: 12px;
+}
+
+/* Stack on small screens */
+@media (max-width: 900px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Charts grid */
+.charts-container {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 28px;
+  align-items: center;
+  margin-top: 16px;
+}
+.chart-card { width: 100%; background: transparent; }
+.chart-card.empty {
+  color: #94a3b8;
+  display: flex; align-items: center; justify-content: center;
+  height: 340px; border: 1px dashed #334155; border-radius: 12px;
+}
+@media (max-width: 900px) {
+  .charts-container { grid-template-columns: 1fr; }
+}

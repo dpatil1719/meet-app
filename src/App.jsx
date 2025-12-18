@@ -5,6 +5,7 @@ import NumberOfEvents from './components/NumberOfEvents';
 import { getEvents, extractLocations } from './api';
 import { InfoAlert, ErrorAlert, WarningAlert } from './components/Alert';
 import CityEventsChart from './components/CityEventsChart';
+import EventGenresChart from './components/EventGenresChart';
 import './App.css';
 
 const App = () => {
@@ -17,9 +18,8 @@ const App = () => {
   const [infoAlert, setInfoAlert] = useState('');
   const [errorAlert, setErrorAlert] = useState('');
   const [warnAlert, setWarnAlert] = useState('');
-  const [loading, setLoading] = useState(true); // first-load only
+  const [loading, setLoading] = useState(true);
 
-  // Fetch ONCE
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -35,7 +35,6 @@ const App = () => {
     return () => { cancelled = true; };
   }, []);
 
-  // Derive visible events + alerts
   useEffect(() => {
     if (loading || allEvents.length === 0) {
       setEvents([]);
@@ -80,10 +79,9 @@ const App = () => {
         setErrorAlert={setErrorAlert}
       />
 
-      {/* Charts go here */}
       <div className="charts-container">
+        <EventGenresChart events={events} />
         <CityEventsChart allLocations={allLocations} events={events} />
-        {/* We'll add the Pie chart component next step */}
       </div>
 
       <EventList events={events} />

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -8,109 +8,82 @@ import {
   Tooltip,
 } from "recharts";
 
-/** Fixed order so colors & legend are stable */
 const GENRES = ["Angular", "JavaScript", "Node", "React", "jQuery"];
-
-/** Colors to match your screenshot (green, blue, purple, orange, red) */
-const COLOR_BY = {
-  Angular:    "#22c55e",
-  JavaScript: "#3b82f6",
-  Node:       "#8b5cf6",
-  React:      "#f59e0b",
-  jQuery:     "#ef4444",
-};
+const COLORS = ["#22c55e", "#60a5fa", "#a78bfa", "#f59e0b", "#ef4444"];
 
 export default function EventGenresChart({ events = [] }) {
-  const [data, setData] = useState([]);
-
-  const normalized = useMemo(
-    () =>
-      (events || []).map((e) => ({
-        summary: String(e?.summary || "").toLowerCase(),
-      })),
-    [events]
-  );
-
-  const buildData = () =>
-    GENRES.map((g) => {
-      const k = g.toLowerCase();
-      const isAngular = k === "angular";
-      const value = normalized.filter((e) =>
-        isAngular ? e.summary.includes("angular") : e.summary.includes(k)
+  const data = useMemo(() => {
+    const safe = Array.isArray(events) ? events : [];
+    return GENRES.map((g) => {
+      const value = safe.filter((e) =>
+        (e?.summary || "").toLowerCase().includes(g.toLowerCase())
       ).length;
       return { name: g, value };
-    });
+    }).filter((d) => d.value > 0);
+  }, [events]);
 
-  useEffect(() => {
-    setData(buildData());
-    // stringify to ensure updates when array identity is stable
-  }, [JSON.stringify(events)]);
+  if (!data.length) {
+    return (
+      <div className="chart-card empty">
+        <p className="muted">No genre data for the current selection.</p>
+      </div>
+    );
+  }
 
-  // Inside-slice % labels (white text with subtle dark outline for readability)
-  const renderInsidePercent = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+  const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = innerRadius + (outerRadius - innerRadius) * 0.5;
+    const r = outerRadius + 14;
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
-    const text = `${(percent * 100).toFixed(0)}%`;
     return (
-      <>
-        <text
-          x={x} y={y} textAnchor="middle" dominantBaseline="central"
-          fill="rgba(0,0,0,.45)" stroke="rgba(0,0,0,.45)" strokeWidth="3"
-          style={{ paintOrder: "stroke" }}
-        >
-          {text}
-        </text>
-        <text
-          x={x} y={y} textAnchor="middle" dominantBaseline="central"
-          fill="#ffffff" fontWeight="700"
-        >
-          {text}
-        </text>
-      </>
+      <text
+        x={x}
+        y={y}
+        fill="#d1d5db"
+        fontSize="13"
+        textAnchor={x > cx ? "start" : "end"}
+        dominantBaseline="central"
+      >
+        {`${data[index].name} ${(percent * 100).toFixed(0)}%`}
+      </text>
     );
   };
 
   return (
-    <ResponsiveContainer width="100%" height={340}>
-      <PieChart>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          outerRadius={120}
-          labelLine={false}
-          label={renderInsidePercent}
-          isAnimationActive={false}
-        >
-          {GENRES.map((g) => (
-            <Cell key={g} fill={COLOR_BY[g]} />
-          ))}
-        </Pie>
-
-        {/* Fixed legend order/colors to always match the screenshot */}
-        <Legend
-          verticalAlign="bottom"
-          align="left"
-          payload={GENRES.map((g) => ({
-            value: g,
-            type: "square",
-            color: COLOR_BY[g],
-            id: g,
-          }))}
-        />
-
-        <Tooltip
-          cursor={{ fill: "transparent" }}
-          contentStyle={{
-            background: "rgba(17,17,17,.9)",
-            border: "1px solid rgba(255,255,255,.15)",
-            color: "#fff",
-          }}
-        />
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="chart-card">
+      <ResponsiveContainer width="100%" height={340}>
+        <PieChart>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            cx="50%"
+            cy="50%"
+            outerRadius={90}
+            labelLine={false}
+            label={renderLabel}
+            isAnimationActive={false}
+          >
+            {data.map((entry, i) => (
+              <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
+            ))}
+          </Pie>
+          <Legend
+            verticalAlign="bottom"
+            align="center"
+            iconType="circle"
+            wrapperStyle={{ color: "#cbd5e1", fontSize: 13, paddingTop: 8 }}
+          />
+          <Tooltip
+            contentStyle={{
+              background: "#0b0f14",
+              border: "1px solid #1f2937",
+              color: "#e5e7eb",
+            }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
   );
 }
