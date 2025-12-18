@@ -1,76 +1,68 @@
-import { useEffect, useState } from 'react';
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend } from 'recharts';
+import { useMemo } from 'react';
+import {
+  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer
+} from 'recharts';
 
-const COLORS = ['#ef4444', '#22c55e', '#6366f1', '#eab308', '#a855f7', '#9ca3af']; // last = "Other"
+const GENRES = ['React', 'JavaScript', 'Node', 'jQuery', 'Angular'];
+const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#facc15', '#a855f7'];
 
-const GENRES = [
-  { name: 'React',      rx: /react(?!\s*router)/i },            // React, React Native
-  { name: 'JavaScript', rx: /\bjavascript\b|\bjs\b/i },         // JavaScript, JS
-  { name: 'Node',       rx: /\bnode(\.js)?\b/i },               // Node, Node.js
-  { name: 'jQuery',     rx: /\bjquery\b/i },                    // jQuery
-  { name: 'Angular',    rx: /\bangular(\.js)?\b/i },            // Angular, AngularJS
-];
+// Match common variants so localhost data (e.g., "JS Conf", "Node.js", "React Native") counts
+const PATTERN = {
+  React: /react/i,
+  JavaScript: /\bjavascript\b|(^|\s)js(\b|[^a-z])/i,
+  Node: /\bnode(\.js)?\b/i,
+  jQuery: /\bjquery\b/i,
+  Angular: /\bangular\b/i
+};
 
 export default function EventGenresChart({ events = [] }) {
-  const [data, setData] = useState([]);
-
-  useEffect(() => {
-    const totals = GENRES.map(g => ({
-      name: g.name,
-      value: events.filter(e =>
-        g.rx.test(((e && e.summary) || '') + ' ' + ((e && e.description) || ''))
-      ).length,
+  const data = useMemo(() => {
+    return GENRES.map((name) => ({
+      name,
+      value: events.filter(e => PATTERN[name].test((e?.summary ?? ''))).length
     }));
+  }, [events]);
 
-    const matched = totals.reduce((s, d) => s + d.value, 0);
-    const other = events.length > matched ? [{ name: 'Other', value: events.length - matched }] : [];
-    setData([...totals, ...other]);
-  }, [`${events}`]);
+  const total = data.reduce((s, d) => s + d.value, 0);
+  if (!total) return null;
 
   const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius * 1.12;
+    const r = outerRadius + 10;
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
-    const txt = `${data[index]?.name ?? ''} ${(percent * 100).toFixed(0)}%`;
     return (
       <text
         x={x}
         y={y}
+        fontSize={14}
+        fontWeight={600}
         fill="#ffffff"
-        fontSize="14"
-        fontWeight="600"
         textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
-        stroke="#000000"
-        strokeWidth="0.6"
-        paintOrder="stroke"
       >
-        {txt}
+        {`${GENRES[index]} ${(percent * 100).toFixed(0)}%`}
       </text>
     );
   };
 
-  const allZero = data.length && data.every(d => d.value === 0);
-
-  if (allZero) {
-    return (
-      <div style={{ color: '#9ca3af', textAlign: 'center', padding: 16 }}>
-        No genre data for this selection
-      </div>
-    );
-  }
-
   return (
-    <ResponsiveContainer width="99%" height={320}>
-      <PieChart>
-        <Pie data={data} dataKey="value" outerRadius={120} labelLine={false} label={renderLabel}>
-          {data.map((_, i) => (
-            <Cell key={i} fill={COLORS[i % COLORS.length]} />
-          ))}
+    <ResponsiveContainer width="100%" height={340}>
+      <PieChart margin={{ top: 16, right: 56, bottom: 8, left: 56 }}>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          outerRadius={115}
+          labelLine={false}
+          label={renderLabel}
+          isAnimationActive={false}
+        >
+          {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
         </Pie>
-        <Legend verticalAlign="bottom" />
+        <Tooltip />
+        <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={10} />
       </PieChart>
     </ResponsiveContainer>
   );

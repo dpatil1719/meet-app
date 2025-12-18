@@ -1,46 +1,34 @@
-// src/components/CityEventsChart.jsx
-import { useEffect, useState } from 'react';
+import { useMemo } from 'react';
 import {
   ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
 
 export default function CityEventsChart({ allLocations = [], events = [] }) {
-  const [data, setData] = useState([]);
+  const data = useMemo(() => {
+    if (!allLocations.length || !events.length) return [];
+    return allLocations.map((loc) => ({
+      city: loc.split(/, | - /)[0],
+      count: events.filter((e) => e.location === loc).length
+    }));
+  }, [allLocations, events]);
 
-  const getData = () =>
-    allLocations
-      .map((location) => {
-        const count = events.filter((e) => e.location === location).length;
-        const city = location.split(/, | - /)[0];
-        return { city, count };
-      })
-      .filter((d) => d.count > 0);
-
-  useEffect(() => {
-    setData(getData());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [`${events}`, `${allLocations}`]);
+  if (!data.length) return null;
 
   return (
-    <ResponsiveContainer width="100%" height={400}>
-      <ScatterChart margin={{ top: 10, right: 20, bottom: 76, left: 0 }}>
-        <CartesianGrid stroke="#3a3a3a" />
+    <ResponsiveContainer width="100%" height={340}>
+      <ScatterChart margin={{ top: 16, right: 24, bottom: 72, left: 8 }}>
+        <CartesianGrid />
         <XAxis
           type="category"
           dataKey="city"
-          angle={60}
+          name="City"
           interval={0}
-          tick={{ dx: 18, dy: 40, fontSize: 12, fill: '#cbd5e1' }}
+          angle={55}
+          tick={{ dy: 30, fontSize: 12 }}
         />
-        <YAxis
-          type="number"
-          dataKey="count"
-          name="Events"
-          allowDecimals={false}
-          tick={{ fill: '#cbd5e1' }}
-        />
-        <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151' }} />
-        <Scatter name="Events per city" data={data} fill="#22d3ee" fillOpacity={0.95} />
+        <YAxis type="number" dataKey="count" name="Events" allowDecimals={false} />
+        <Tooltip />
+        <Scatter data={data} fill="#22d3ee" />
       </ScatterChart>
     </ResponsiveContainer>
   );

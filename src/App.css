@@ -265,3 +265,23 @@ button:hover { background: rgba(255,255,255,0.12); }
     Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
   letter-spacing: .2px;
 }
+
+/* === Charts layout === */
+.charts-container {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 1fr; /* single column by default */
+  margin: 24px 0;
+}
+
+@media (min-width: 980px) {
+  .charts-container {
+    grid-template-columns: 1fr 1fr; /* two columns on larger screens */
+    align-items: stretch;
+  }
+}
+
+/* charts spacing */
+.charts-container { gap: 24px; }
+/* ensure labels outside pie aren't clipped */
+.recharts-wrapper { overflow: visible; }
