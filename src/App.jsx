@@ -9,89 +9,85 @@ import './App.css';
 const App = () => {
   const [allEvents, setAllEvents] = useState([]);
   const [events, setEvents] = useState([]);
+  const [currentNOE, setCurrentNOE] = useState(32);
   const [allLocations, setAllLocations] = useState([]);
   const [currentCity, setCurrentCity] = useState('See all cities');
-  const [currentNOE, setCurrentNOE] = useState(32);
 
-  // Alerts
-  const [infoMsg, setInfoMsg] = useState('');
-  const [errorMsg, setErrorMsg] = useState('');
-  const [warnMsg, setWarnMsg] = useState('');
+  const [infoAlert, setInfoAlert] = useState('');
+  const [errorAlert, setErrorAlert] = useState('');
+  const [warnAlert, setWarnAlert] = useState('');
+  const [loading, setLoading] = useState(true); // only for first load
 
-  // Loading gate
-  const [loading, setLoading] = useState(true);
-
-  // Fetch all events once (mount)
+  // 1) Fetch ONCE (first load only). No "0 events" flash.
   useEffect(() => {
-    let alive = true;
+    let cancelled = false;
     (async () => {
-      setLoading(true);
-      setErrorMsg('');
       try {
         const evts = await getEvents();
-        if (!alive) return;
-        setAllEvents(evts || []);
-        setAllLocations(extractLocations(evts || []));
-      } catch (err) {
-        if (!alive) return;
-        setErrorMsg('Could not load events. Please refresh or try again later.');
-        setAllEvents([]);
-        setAllLocations([]);
+        if (cancelled) return;
+        setAllEvents(evts);
+        setAllLocations(extractLocations(evts));
       } finally {
-        if (alive) setLoading(false);
+        if (!cancelled) setLoading(false);
       }
     })();
-    return () => {
-      alive = false;
-    };
+    return () => { cancelled = true; };
   }, []);
 
-  // Derive visible events and set the "Only X events..." info (but not while loading)
+  // 2) Derive visible events whenever filters or source change.
   useEffect(() => {
-    const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
+    // Don’t compute alerts while initial data hasn’t arrived yet.
+    if (allEvents.length === 0) {
+      setEvents([]);
+      return;
+    }
 
-    const pool =
+    // Offline warning (from the lesson)
+    setWarnAlert(navigator.onLine ? '' : 'You are offline. Showing cached events.');
+
+    const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
+    const base =
       currentCity === 'See all cities'
         ? allEvents
         : allEvents.filter((e) => e.location === currentCity);
 
-    setEvents(pool.slice(0, limit));
+    setEvents(base.slice(0, limit));
 
-    if (!loading) {
-      setInfoMsg(limit > pool.length && pool.length >= 0
-        ? `Only ${pool.length} events available. Showing all available.`
-        : '');
+    // Info alert after we know counts (prevents the 0-flash)
+    if (limit > base.length) {
+      setInfoAlert(`Only ${base.length} events available. Showing all available.`);
+    } else {
+      setInfoAlert('');
     }
-  }, [allEvents, currentCity, currentNOE, loading]);
-
-  // Offline warning
-  useEffect(() => {
-    setWarnMsg(navigator.onLine ? '' : 'You are offline. Showing cached events (may be outdated).');
-  }, [currentCity, currentNOE, loading]);
+  }, [allEvents, currentCity, currentNOE]);
 
   return (
     <div className="App">
       <div className="alerts-container">
-        {errorMsg && <ErrorAlert text={errorMsg} />}
-        {warnMsg && <WarningAlert text={warnMsg} />}
-        {!loading && infoMsg && <InfoAlert text={infoMsg} />}
+        <InfoAlert text={infoAlert} />
+        <ErrorAlert text={errorAlert} />
+        <WarningAlert text={warnAlert} />
       </div>
 
       <CitySearch
         allLocations={allLocations}
         setCurrentCity={setCurrentCity}
+        setErrorAlert={setErrorAlert}
       />
 
-      <label htmlFor="noe" className="sr-only">Number of events</label>
+      {/* Remove duplicate label in App; NumberOfEvents handles its own label/accessibility */}
       <NumberOfEvents
         currentNOE={currentNOE}
         setCurrentNOE={setCurrentNOE}
-        setErrorAlert={setErrorMsg}
+        setErrorAlert={setErrorAlert}
       />
 
-      {loading && events.length === 0 ? (
-        <p className="loading">Loading events...</p>
-      ) : null}
+      {/* Show loader ONLY before first successful fetch */}
+      {loading && events.length === 0 && (
+        <div className="loading" style={{ textAlign: 'center', opacity: 0.7 }}>
+          Loading events…
+        </div>
+      )}
 
       <EventList events={events} />
     </div>
