@@ -285,3 +285,37 @@ button:hover { background: rgba(255,255,255,0.12); }
 .charts-container { gap: 24px; }
 /* ensure labels outside pie aren't clipped */
 .recharts-wrapper { overflow: visible; }
+
+/* === Charts layout & fixes === */
+.charts-container {
+  display: grid;
+  grid-template-columns: minmax(340px, 520px) 1fr;
+  gap: 24px;
+  align-items: start;
+  margin-top: 8px;
+}
+
+/* allow labels to render outside the pie without clipping */
+.charts-rc { overflow: visible !important; }
+
+/* simple shells */
+.chart-shell { background: transparent; }
+.chart-shell--empty {
+  display: grid;
+  place-items: center;
+  height: 360px;
+  color: #9ca3af;
+  border: 1px dashed #374151;
+  border-radius: 12px;
+}
+
+/* make scatter dots pop on dark bg */
+.recharts-scatter-symbol {
+  stroke: #0ea5e9;
+  stroke-width: 2;
+  fill: #22d3ee;
+}
+
+@media (max-width: 900px) {
+  .charts-container { grid-template-columns: 1fr; }
+}

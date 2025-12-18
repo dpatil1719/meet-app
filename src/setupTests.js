@@ -28,3 +28,37 @@ afterEach(() => {
   window.ResizeObserver = ResizeObserver;
   jest.restoreAllMocks();
 });
+/* --- Recharts / ResponsiveContainer: ResizeObserver mock for tests --- */
+const OriginalResizeObserver = global.ResizeObserver || window.ResizeObserver;
+
+beforeEach(() => {
+  class MockResizeObserver {
+    observe() {}
+    unobserve() {}
+    disconnect() {}
+  }
+  Object.defineProperty(window, 'ResizeObserver', {
+    configurable: true,
+    writable: true,
+    value: MockResizeObserver,
+  });
+  Object.defineProperty(global, 'ResizeObserver', {
+    configurable: true,
+    writable: true,
+    value: MockResizeObserver,
+  });
+});
+
+afterEach(() => {
+  Object.defineProperty(window, 'ResizeObserver', {
+    configurable: true,
+    writable: true,
+    value: OriginalResizeObserver,
+  });
+  Object.defineProperty(global, 'ResizeObserver', {
+    configurable: true,
+    writable: true,
+    value: OriginalResizeObserver,
+  });
+});
+/* --- end mock --- */

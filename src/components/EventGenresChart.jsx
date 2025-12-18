@@ -1,34 +1,32 @@
-import { useMemo } from 'react';
+// src/components/EventGenresChart.jsx
+import { useMemo } from "react";
 import {
-  PieChart, Pie, Cell, Tooltip, Legend, ResponsiveContainer
-} from 'recharts';
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend,
+  Tooltip,
+} from "recharts";
 
-const GENRES = ['React', 'JavaScript', 'Node', 'jQuery', 'Angular'];
-const COLORS = ['#ef4444', '#22c55e', '#3b82f6', '#facc15', '#a855f7'];
-
-// Match common variants so localhost data (e.g., "JS Conf", "Node.js", "React Native") counts
-const PATTERN = {
-  React: /react/i,
-  JavaScript: /\bjavascript\b|(^|\s)js(\b|[^a-z])/i,
-  Node: /\bnode(\.js)?\b/i,
-  jQuery: /\bjquery\b/i,
-  Angular: /\bangular\b/i
-};
+const GENRES = ["React", "JavaScript", "Node", "jQuery", "Angular"];
+const COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#a855f7"];
 
 export default function EventGenresChart({ events = [] }) {
   const data = useMemo(() => {
-    return GENRES.map((name) => ({
-      name,
-      value: events.filter(e => PATTERN[name].test((e?.summary ?? ''))).length
+    const lower = (s) => (s || "").toLowerCase();
+    return GENRES.map((g) => ({
+      name: g,
+      value: events.filter((e) => lower(e.summary).includes(lower(g))).length,
     }));
   }, [events]);
 
-  const total = data.reduce((s, d) => s + d.value, 0);
+  const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
 
   const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius + 10; // push text outside the slice
+    const r = outerRadius + 16;
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
     return (
@@ -36,9 +34,9 @@ export default function EventGenresChart({ events = [] }) {
         x={x}
         y={y}
         fontSize={14}
-        fontWeight={600}
-        fill="#ffffff"
-        textAnchor={x > cx ? 'start' : 'end'}
+        fontWeight={700}
+        fill="#eaeaea"
+        textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
       >
         {`${GENRES[index]} ${(percent * 100).toFixed(0)}%`}
@@ -46,33 +44,39 @@ export default function EventGenresChart({ events = [] }) {
     );
   };
 
+  if (!total) {
+    return (
+      <div className="chart-shell chart-shell--empty">
+        <p>No genre data for the current filters.</p>
+      </div>
+    );
+  }
+
   return (
-    <ResponsiveContainer width="100%" height={340}>
-      <PieChart margin={{ top: 16, right: 56, bottom: 8, left: 56 }}>
-        {total ? (
-          <>
-            <Pie
-              data={data}
-              dataKey="value"
-              nameKey="name"
-              outerRadius={115}
-              labelLine={false}
-              label={renderLabel}
-              isAnimationActive={false}
-            >
-              {data.map((_, i) => (
-                <Cell key={i} fill={COLORS[i % COLORS.length]} />
-              ))}
-            </Pie>
-            <Tooltip />
-            <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={10} />
-          </>
-        ) : (
-          <text x="50%" y="50%" textAnchor="middle" fill="#9CA3AF" fontSize="14">
-            No genre data for current selection
-          </text>
-        )}
-      </PieChart>
-    </ResponsiveContainer>
+    <div className="chart-shell">
+      <ResponsiveContainer width="100%" height={360} className="charts-rc">
+        <PieChart margin={{ top: 10, right: 90, bottom: 10, left: 90 }}>
+          <Pie
+            data={data}
+            dataKey="value"
+            nameKey="name"
+            outerRadius={120}
+            labelLine={false}
+            label={renderLabel}
+            isAnimationActive
+          >
+            {data.map((_, i) => (
+              <Cell key={i} fill={COLORS[i % COLORS.length]} />
+            ))}
+          </Pie>
+          <Legend verticalAlign="bottom" align="center" />
+          <Tooltip
+            formatter={(v, n) => [`${v}`, n]}
+            contentStyle={{ background: "#111827", border: "1px solid #374151", color: "#e5e7eb" }}
+            itemStyle={{ color: "#e5e7eb" }}
+          />
+        </PieChart>
+      </ResponsiveContainer>
+    </div>
   );
 }

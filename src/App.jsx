@@ -5,7 +5,6 @@ import NumberOfEvents from './components/NumberOfEvents';
 import { getEvents, extractLocations } from './api';
 import { InfoAlert, ErrorAlert, WarningAlert } from './components/Alert';
 import CityEventsChart from './components/CityEventsChart';
-import EventGenresChart from './components/EventGenresChart';
 import './App.css';
 
 const App = () => {
@@ -20,7 +19,7 @@ const App = () => {
   const [warnAlert, setWarnAlert] = useState('');
   const [loading, setLoading] = useState(true); // first-load only
 
-  // Initial fetch (once)
+  // Fetch ONCE
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -44,7 +43,6 @@ const App = () => {
       return;
     }
 
-    // PWA offline hint
     setWarnAlert(navigator.onLine ? '' : 'You are offline. Showing cached events.');
 
     const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
@@ -82,10 +80,10 @@ const App = () => {
         setErrorAlert={setErrorAlert}
       />
 
-      {/* Charts */}
+      {/* Charts go here */}
       <div className="charts-container">
-        <EventGenresChart events={events} />
         <CityEventsChart allLocations={allLocations} events={events} />
+        {/* We'll add the Pie chart component next step */}
       </div>
 
       <EventList events={events} />
