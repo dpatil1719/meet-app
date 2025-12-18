@@ -11,11 +11,13 @@ const CityEventsChart = ({ allLocations, events }) => {
   }, [JSON.stringify(events)]);
 
   const getData = () => {
-    return allLocations.map((location) => {
+    const rows = allLocations.map((location) => {
       const count = events.filter((e) => e.location === location).length;
       const city = location.split(/, | - /)[0];
       return { city, count };
     });
+    // if city filter is active, most cities are 0—hide them to avoid a flat look
+    return rows.filter(r => r.count > 0);
   };
 
   return (
@@ -28,7 +30,7 @@ const CityEventsChart = ({ allLocations, events }) => {
         />
         <YAxis type="number" dataKey="count" name="Number of events" allowDecimals={false} />
         <Tooltip cursor={{ strokeDasharray: '3 3' }} />
-        <Scatter name="Events" data={data} />
+        <Scatter name="Events" data={data} fill="#00d8ff" />
       </ScatterChart>
     </ResponsiveContainer>
   );

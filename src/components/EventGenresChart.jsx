@@ -16,10 +16,8 @@ const EventGenresChart = ({ events }) => {
       value: events.filter((e) => e.summary?.includes(genre)).length,
     }));
 
-  // Draw labels inside each slice to avoid overlap with legend
-  const renderInsideLabel = ({
-    cx, cy, midAngle, innerRadius, outerRadius, percent,
-  }) => {
+  // draw % label inside each slice
+  const renderInsideLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
     const r = (innerRadius || 0) + ((outerRadius || 0) - (innerRadius || 0)) * 0.55;
@@ -35,13 +33,13 @@ const EventGenresChart = ({ events }) => {
 
   return (
     <ResponsiveContainer width="99%" height={340}>
-      <PieChart margin={{ top: 12, right: 8, bottom: 36, left: 8 }}>
+      <PieChart margin={{ top: 12, right: 8, bottom: 40, left: 8 }}>
         <Pie
           data={data}
           dataKey="value"
           cx="50%"
-          cy="62%"          /* push down a bit to avoid top clipping */
-          outerRadius={112} /* slightly smaller for breathing room */
+          cy="60%"          /* a touch lower so it doesn't crowd the top */
+          outerRadius={112} /* a bit smaller to leave room for legend */
           labelLine={false}
           label={renderInsideLabel}
         >
@@ -49,7 +47,7 @@ const EventGenresChart = ({ events }) => {
             <Cell key={i} fill={colors[i % colors.length]} />
           ))}
         </Pie>
-        <Legend verticalAlign="bottom" align="center" />
+        <Legend verticalAlign="bottom" align="center" wrapperStyle={{ marginTop: 8 }} />
       </PieChart>
     </ResponsiveContainer>
   );
