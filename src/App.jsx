@@ -16,9 +16,9 @@ const App = () => {
   const [infoAlert, setInfoAlert] = useState('');
   const [errorAlert, setErrorAlert] = useState('');
   const [warnAlert, setWarnAlert] = useState('');
-  const [loading, setLoading] = useState(true); // only for first load
+  const [loading, setLoading] = useState(true); // first-load only
 
-  // 1) Fetch ONCE (first load only). No "0 events" flash.
+  // Fetch ONCE
   useEffect(() => {
     let cancelled = false;
     (async () => {
@@ -34,15 +34,15 @@ const App = () => {
     return () => { cancelled = true; };
   }, []);
 
-  // 2) Derive visible events whenever filters or source change.
+  // Derive visible events + alerts
   useEffect(() => {
-    // Don’t compute alerts while initial data hasn’t arrived yet.
-    if (allEvents.length === 0) {
+    // While loading or nothing fetched yet, don't compute alerts
+    if (loading || allEvents.length === 0) {
       setEvents([]);
+      setInfoAlert('');
       return;
     }
 
-    // Offline warning (from the lesson)
     setWarnAlert(navigator.onLine ? '' : 'You are offline. Showing cached events.');
 
     const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
@@ -53,13 +53,12 @@ const App = () => {
 
     setEvents(base.slice(0, limit));
 
-    // Info alert after we know counts (prevents the 0-flash)
     if (limit > base.length) {
       setInfoAlert(`Only ${base.length} events available. Showing all available.`);
     } else {
       setInfoAlert('');
     }
-  }, [allEvents, currentCity, currentNOE]);
+  }, [allEvents, currentCity, currentNOE, loading]);
 
   return (
     <div className="App">
@@ -75,19 +74,13 @@ const App = () => {
         setErrorAlert={setErrorAlert}
       />
 
-      {/* Remove duplicate label in App; NumberOfEvents handles its own label/accessibility */}
       <NumberOfEvents
         currentNOE={currentNOE}
         setCurrentNOE={setCurrentNOE}
         setErrorAlert={setErrorAlert}
       />
 
-      {/* Show loader ONLY before first successful fetch */}
-      {loading && events.length === 0 && (
-        <div className="loading" style={{ textAlign: 'center', opacity: 0.7 }}>
-          Loading events…
-        </div>
-      )}
+      {/* Loader removed on purpose */}
 
       <EventList events={events} />
     </div>
