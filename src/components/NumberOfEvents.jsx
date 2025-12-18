@@ -80,7 +80,6 @@ const NumberOfEvents = ({
       {/* helpful hint when no events yet */}
       {!hasLoaded && (
         <div style={{ fontSize: '12px', opacity: 0.7, marginTop: '6px' }}>
-          Loading events…
         </div>
       )}
     </div>

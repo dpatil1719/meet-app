@@ -1,24 +1,15 @@
 import React from 'react';
 import Event from './Event';
 
-const EventList = ({ events = [], isLoading = false }) => {
-  // Show loader ONLY while loading and nothing to show yet
-  if (isLoading && events.length === 0) {
-    return <p className="loading" aria-live="polite">Loading events...</p>;
-  }
+const EventList = ({ events }) => {
+  const list = Array.isArray(events) ? events : [];
 
-  // If not loading and empty, render nothing (or an empty state if you want)
-  if (!isLoading && events.length === 0) {
-    return null;
-  }
-
+  // Do not render any loader here. If there are no events, render nothing.
   return (
-    <ul className="EventList">
-      {events.map((event) => (
-        <li key={event.id}>
-          <Event event={event} />
-        </li>
-      ))}
+    <ul className="EventList" aria-live="polite">
+      {list.length > 0
+        ? list.map((event) => <Event key={event.id} event={event} />)
+        : null}
     </ul>
   );
 };
