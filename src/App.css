@@ -258,3 +258,10 @@ button:hover { background: rgba(255,255,255,0.12); }
     grid-template-columns: 1fr;
   }
 }
+
+/* Chart label font smoothing for consistent look on Vercel vs local */
+.chart-label {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji";
+  letter-spacing: .2px;
+}
