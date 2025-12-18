@@ -319,3 +319,34 @@ button:hover { background: rgba(255,255,255,0.12); }
 @media (max-width: 900px) {
   .charts-container { grid-template-columns: 1fr; }
 }
+
+/* --- charts layout & visibility fixes --- */
+.charts-container {
+  display: grid;
+  grid-template-columns: minmax(360px, 560px) 1fr;
+  gap: 28px;
+  align-items: start;
+}
+
+.chart-shell { overflow: visible; }
+.charts-rc { overflow: visible !important; }
+
+.chart-shell--empty {
+  display: grid;
+  place-items: center;
+  height: 360px;
+  color: #9ca3af;
+  border: 1px dashed #374151;
+  border-radius: 12px;
+}
+
+/* high-contrast scatter dots on dark bg */
+.recharts-scatter-symbol {
+  stroke: #0ea5e9;
+  stroke-width: 2;
+  fill: #22d3ee;
+}
+
+@media (max-width: 900px) {
+  .charts-container { grid-template-columns: 1fr; }
+}

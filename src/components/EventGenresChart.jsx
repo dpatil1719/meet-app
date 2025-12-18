@@ -9,16 +9,28 @@ import {
   Tooltip,
 } from "recharts";
 
+/**
+ * Robust genre matching:
+ * - JavaScript also counts "JS", "TypeScript", "TS"
+ * - Node counts "Node" or "Node.js"
+ */
 const GENRES = ["React", "JavaScript", "Node", "jQuery", "Angular"];
+const MATCHERS = {
+  React: /(react)/i,
+  JavaScript: /(javascript|\bjs\b|typescript|\bts\b)/i,
+  Node: /(node(\.js)?)/i,
+  jQuery: /(jquery)/i,
+  Angular: /(angular)/i,
+};
 const COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#a855f7"];
 
 export default function EventGenresChart({ events = [] }) {
   const data = useMemo(() => {
-    const lower = (s) => (s || "").toLowerCase();
-    return GENRES.map((g) => ({
-      name: g,
-      value: events.filter((e) => lower(e.summary).includes(lower(g))).length,
-    }));
+    return GENRES.map((g) => {
+      const re = MATCHERS[g];
+      const value = events.filter((e) => re.test((e?.summary || ""))).length;
+      return { name: g, value };
+    });
   }, [events]);
 
   const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
@@ -26,7 +38,7 @@ export default function EventGenresChart({ events = [] }) {
   const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius + 16;
+    const r = outerRadius + 18; // push labels outside
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
     return (
@@ -35,7 +47,7 @@ export default function EventGenresChart({ events = [] }) {
         y={y}
         fontSize={14}
         fontWeight={700}
-        fill="#eaeaea"
+        fill="#e5e7eb"
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
       >
@@ -55,7 +67,8 @@ export default function EventGenresChart({ events = [] }) {
   return (
     <div className="chart-shell">
       <ResponsiveContainer width="100%" height={360} className="charts-rc">
-        <PieChart margin={{ top: 10, right: 90, bottom: 10, left: 90 }}>
+        {/* Big left/right margins prevent any label clipping (e.g., "JavaScript") */}
+        <PieChart margin={{ top: 8, right: 180, bottom: 8, left: 180 }}>
           <Pie
             data={data}
             dataKey="value"
