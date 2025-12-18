@@ -185,3 +185,8 @@ button:hover { background: rgba(255,255,255,0.12); }
 /* Links in events */
 #event-list li a { color: #8ab4ff; }
 
+
+.alert { margin: 16px auto; padding: 10px 14px; border-radius: 8px; width: fit-content; }
+.alert.info { background:#e8f0fe; color:#1a3a8a; }
+.alert.error { background:#fde7e9; color:#8a1a1a; }
+.alert.warning { background:#fff8e1; color:#7a4d00; }
