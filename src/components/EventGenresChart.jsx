@@ -16,36 +16,34 @@ const EventGenresChart = ({ events }) => {
       value: events.filter((e) => e.summary?.includes(genre)).length,
     }));
 
-  const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
+  // Draw labels inside each slice to avoid overlap with legend
+  const renderInsideLabel = ({
+    cx, cy, midAngle, innerRadius, outerRadius, percent,
+  }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius;
-    const x = cx + r * Math.cos(-midAngle * RAD) * 1.07;
-    const y = cy + r * Math.sin(-midAngle * RAD) * 1.07;
+    const r = (innerRadius || 0) + ((outerRadius || 0) - (innerRadius || 0)) * 0.55;
+    const x = cx + r * Math.cos(-midAngle * RAD);
+    const y = cy + r * Math.sin(-midAngle * RAD);
     return (
-      <text
-        x={x}
-        y={y}
-        fill="#ddd"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-      >
-        {`${genres[index]} ${(percent * 100).toFixed(0)}%`}
+      <text x={x} y={y} fill="#fff" fontSize="12" fontWeight="600"
+            textAnchor="middle" dominantBaseline="central">
+        {`${Math.round(percent * 100)}%`}
       </text>
     );
   };
 
   return (
     <ResponsiveContainer width="99%" height={340}>
-      <PieChart margin={{ top: 8, right: 0, bottom: 28, left: 0 }}>
+      <PieChart margin={{ top: 12, right: 8, bottom: 36, left: 8 }}>
         <Pie
           data={data}
           dataKey="value"
           cx="50%"
-          cy="64%"        // push down to avoid top clipping
-          outerRadius={112} // slightly smaller for breathing room
+          cy="62%"          /* push down a bit to avoid top clipping */
+          outerRadius={112} /* slightly smaller for breathing room */
           labelLine={false}
-          label={renderCustomizedLabel}
+          label={renderInsideLabel}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={colors[i % colors.length]} />
