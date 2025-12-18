@@ -24,12 +24,11 @@ export default function EventGenresChart({ events = [] }) {
   }, [events]);
 
   const total = data.reduce((s, d) => s + d.value, 0);
-  if (!total) return null;
 
   const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius + 10;
+    const r = outerRadius + 10; // push text outside the slice
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
     return (
@@ -50,19 +49,29 @@ export default function EventGenresChart({ events = [] }) {
   return (
     <ResponsiveContainer width="100%" height={340}>
       <PieChart margin={{ top: 16, right: 56, bottom: 8, left: 56 }}>
-        <Pie
-          data={data}
-          dataKey="value"
-          nameKey="name"
-          outerRadius={115}
-          labelLine={false}
-          label={renderLabel}
-          isAnimationActive={false}
-        >
-          {data.map((_, i) => <Cell key={i} fill={COLORS[i % COLORS.length]} />)}
-        </Pie>
-        <Tooltip />
-        <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={10} />
+        {total ? (
+          <>
+            <Pie
+              data={data}
+              dataKey="value"
+              nameKey="name"
+              outerRadius={115}
+              labelLine={false}
+              label={renderLabel}
+              isAnimationActive={false}
+            >
+              {data.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip />
+            <Legend verticalAlign="bottom" align="center" iconType="circle" iconSize={10} />
+          </>
+        ) : (
+          <text x="50%" y="50%" textAnchor="middle" fill="#9CA3AF" fontSize="14">
+            No genre data for current selection
+          </text>
+        )}
       </PieChart>
     </ResponsiveContainer>
   );
