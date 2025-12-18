@@ -1,69 +1,52 @@
-// src/components/EventGenresChart.jsx
-import { useEffect, useState, useMemo } from 'react';
-import {
-  ResponsiveContainer,
-  PieChart,
-  Pie,
-  Cell,
-  Legend,
-} from 'recharts';
+import { useState, useEffect } from 'react';
+import { ResponsiveContainer, PieChart, Pie, Cell, Legend } from 'recharts';
 
-const EventGenresChart = ({ events = [] }) => {
+const EventGenresChart = ({ events }) => {
   const [data, setData] = useState([]);
+  const genres = ['React', 'JavaScript', 'Node', 'jQuery', 'Angular'];
+  const colors = ['#e74c3c', '#3498db', '#9b59b6', '#f1c40f', '#2ecc71'];
 
-  // Genres to look for in event summaries
-  const genres = useMemo(
-    () => ['React', 'JavaScript', 'Node', 'jQuery', 'Angular'],
-    []
-  );
+  useEffect(() => {
+    setData(getData());
+  }, [JSON.stringify(events)]);
 
-  const colors = ['#DD0000', '#00AA88', '#3366FF', '#FF9900', '#AA33AA'];
+  const getData = () =>
+    genres.map((genre) => ({
+      name: genre,
+      value: events.filter((e) => e.summary?.includes(genre)).length,
+    }));
 
-  const getData = () => {
-    if (!events.length) return [];
-    return genres.map((genre) => {
-      const filtered = events.filter(
-        (e) => typeof e.summary === 'string' && e.summary.includes(genre)
-      );
-      return { name: genre, value: filtered.length };
-    });
-  };
-
-  // Custom percentage labels on slices
-  const renderCustomizedLabel = ({
-    cx, cy, midAngle, outerRadius, percent, index,
-  }) => {
+  // higher-contrast labels and keep them inside the container bounds
+  const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
-    const RADIAN = Math.PI / 180;
-    const x = cx + outerRadius * Math.cos(-midAngle * RADIAN) * 1.07;
-    const y = cy + outerRadius * Math.sin(-midAngle * RADIAN) * 1.07;
+    const RAD = Math.PI / 180;
+    const r = outerRadius;
+    const x = cx + r * Math.cos(-midAngle * RAD) * 1.07;
+    const y = cy + r * Math.sin(-midAngle * RAD) * 1.07;
     return (
       <text
         x={x}
         y={y}
-        fill={colors[index % colors.length]}
+        fill="#ddd"
         textAnchor={x > cx ? 'start' : 'end'}
         dominantBaseline="central"
-        style={{ fontSize: 12 }}
       >
         {`${genres[index]} ${(percent * 100).toFixed(0)}%`}
       </text>
     );
   };
 
-  useEffect(() => {
-    setData(getData());
-  }, [`${events}`]);
-
   return (
-    <ResponsiveContainer width="99%" height={400}>
+    <ResponsiveContainer width="99%" height={340}>
       <PieChart>
         <Pie
           data={data}
           dataKey="value"
+          cx="50%"
+          cy="58%"        // nudge down so top labels don't clip
+          outerRadius={120} // slightly smaller to fit labels
           labelLine={false}
           label={renderCustomizedLabel}
-          outerRadius={150}
         >
           {data.map((_, i) => (
             <Cell key={i} fill={colors[i % colors.length]} />
