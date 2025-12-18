@@ -60,6 +60,9 @@ const App = () => {
     }
   }, [allEvents, currentCity, currentNOE, loading]);
 
+  // Only show loader while we are still loading AND nothing to show yet
+  const showLoader = loading && events.length === 0;
+
   return (
     <div className="App">
       <div className="alerts-container">
@@ -80,7 +83,9 @@ const App = () => {
         setErrorAlert={setErrorAlert}
       />
 
-      {/* Loader removed on purpose */}
+      {showLoader && (
+        <p className="loading" aria-live="polite">Loading events...</p>
+      )}
 
       <EventList events={events} />
     </div>
