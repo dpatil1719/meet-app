@@ -9,11 +9,7 @@ import {
   Tooltip,
 } from "recharts";
 
-/**
- * Robust genre matching:
- * - JavaScript also counts "JS", "TypeScript", "TS"
- * - Node counts "Node" or "Node.js"
- */
+// Canonical genres and robust matchers
 const GENRES = ["React", "JavaScript", "Node", "jQuery", "Angular"];
 const MATCHERS = {
   React: /(react)/i,
@@ -22,23 +18,31 @@ const MATCHERS = {
   jQuery: /(jquery)/i,
   Angular: /(angular)/i,
 };
-const COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#a855f7"];
+
+// Add a distinct "Other" slice to ensure the pie never disappears
+const COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#a855f7", "#9ca3af"]; // last = Other
 
 export default function EventGenresChart({ events = [] }) {
-  const data = useMemo(() => {
+  // Build data from the currently visible events
+  const baseData = useMemo(() => {
     return GENRES.map((g) => {
       const re = MATCHERS[g];
-      const value = events.filter((e) => re.test((e?.summary || ""))).length;
+      const value = events.filter((e) => re.test(e?.summary || "")).length;
       return { name: g, value };
     });
   }, [events]);
 
-  const total = useMemo(() => data.reduce((s, d) => s + d.value, 0), [data]);
+  const countsSum = baseData.reduce((s, d) => s + d.value, 0);
+  const otherCount = Math.max(0, events.length - countsSum);
 
+  // Always render: include "Other" when needed
+  const data = otherCount > 0 ? [...baseData, { name: "Other", value: otherCount }] : baseData;
+
+  // Custom outside labels with generous margins so "JavaScript" doesn't clip
   const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius + 18; // push labels outside
+    const r = outerRadius + 18;
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
     return (
@@ -51,15 +55,16 @@ export default function EventGenresChart({ events = [] }) {
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
       >
-        {`${GENRES[index]} ${(percent * 100).toFixed(0)}%`}
+        {`${data[index].name} ${(percent * 100).toFixed(0)}%`}
       </text>
     );
   };
 
-  if (!total) {
+  // If absolutely no events, show a friendly placeholder instead of a blank area
+  if (events.length === 0) {
     return (
       <div className="chart-shell chart-shell--empty">
-        <p>No genre data for the current filters.</p>
+        <p>No events to visualize.</p>
       </div>
     );
   }
@@ -67,8 +72,7 @@ export default function EventGenresChart({ events = [] }) {
   return (
     <div className="chart-shell">
       <ResponsiveContainer width="100%" height={360} className="charts-rc">
-        {/* Big left/right margins prevent any label clipping (e.g., "JavaScript") */}
-        <PieChart margin={{ top: 8, right: 180, bottom: 8, left: 180 }}>
+        <PieChart margin={{ top: 8, right: 160, bottom: 8, left: 160 }}>
           <Pie
             data={data}
             dataKey="value"
