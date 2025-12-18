@@ -4,6 +4,8 @@ import EventList from './components/EventList';
 import NumberOfEvents from './components/NumberOfEvents';
 import { getEvents, extractLocations } from './api';
 import { InfoAlert, ErrorAlert, WarningAlert } from './components/Alert';
+import CityEventsChart from './components/CityEventsChart';
+import EventGenresChart from './components/EventGenresChart';
 import './App.css';
 
 const App = () => {
@@ -18,49 +20,31 @@ const App = () => {
   const [warnAlert, setWarnAlert] = useState('');
   const [loading, setLoading] = useState(true); // first-load only
 
-  // 1) Initial fetch with offline support
+  // Initial fetch (once)
   useEffect(() => {
     let cancelled = false;
-
-    async function bootstrap() {
+    (async () => {
       try {
-        if (!navigator.onLine) {
-          // Load from cache when offline
-          const cached = localStorage.getItem('lastEvents');
-          if (cached && !cancelled) {
-            const parsed = JSON.parse(cached);
-            setAllEvents(parsed);
-            setAllLocations(extractLocations(parsed));
-          }
-        } else {
-          // Online: fetch, then cache for future offline usage
-          const evts = await getEvents();
-          if (!cancelled && Array.isArray(evts)) {
-            setAllEvents(evts);
-            setAllLocations(extractLocations(evts));
-            try {
-              localStorage.setItem('lastEvents', JSON.stringify(evts));
-            } catch {}
-          }
-        }
+        const evts = await getEvents();
+        if (cancelled) return;
+        setAllEvents(evts);
+        setAllLocations(extractLocations(evts));
       } finally {
         if (!cancelled) setLoading(false);
       }
-    }
-
-    bootstrap();
+    })();
     return () => { cancelled = true; };
   }, []);
 
-  // 2) Derive visible events + alerts
+  // Derive visible events + alerts
   useEffect(() => {
     if (loading || allEvents.length === 0) {
       setEvents([]);
       setInfoAlert('');
-      setWarnAlert(navigator.onLine ? '' : 'You are offline. Showing cached events.');
       return;
     }
 
+    // PWA offline hint
     setWarnAlert(navigator.onLine ? '' : 'You are offline. Showing cached events.');
 
     const limit = Math.max(1, Math.min(60, parseInt(currentNOE, 10) || 32));
@@ -98,7 +82,11 @@ const App = () => {
         setErrorAlert={setErrorAlert}
       />
 
-      {/* If you still see any stray "Loading events..." text, it's coming from CSS/markup elsewhere. We no longer render a loader here. */}
+      {/* Charts */}
+      <div className="charts-container">
+        <EventGenresChart events={events} />
+        <CityEventsChart allLocations={allLocations} events={events} />
+      </div>
 
       <EventList events={events} />
     </div>

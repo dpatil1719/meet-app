@@ -190,3 +190,17 @@ button:hover { background: rgba(255,255,255,0.12); }
 .alert.info { background:#e8f0fe; color:#1a3a8a; }
 .alert.error { background:#fde7e9; color:#8a1a1a; }
 .alert.warning { background:#fff8e1; color:#7a4d00; }
+
+/* Charts grid */
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  align-items: stretch;
+}
+
+@media (max-width: 768px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+}
