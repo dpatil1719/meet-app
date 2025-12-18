@@ -16,7 +16,6 @@ const EventGenresChart = ({ events }) => {
       value: events.filter((e) => e.summary?.includes(genre)).length,
     }));
 
-  // higher-contrast labels and keep them inside the container bounds
   const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
@@ -38,13 +37,13 @@ const EventGenresChart = ({ events }) => {
 
   return (
     <ResponsiveContainer width="99%" height={340}>
-      <PieChart>
+      <PieChart margin={{ top: 8, right: 0, bottom: 28, left: 0 }}>
         <Pie
           data={data}
           dataKey="value"
           cx="50%"
-          cy="58%"        // nudge down so top labels don't clip
-          outerRadius={120} // slightly smaller to fit labels
+          cy="64%"        // push down to avoid top clipping
+          outerRadius={112} // slightly smaller for breathing room
           labelLine={false}
           label={renderCustomizedLabel}
         >

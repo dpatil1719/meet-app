@@ -193,6 +193,7 @@ button:hover { background: rgba(255,255,255,0.12); }
 
 /* Charts grid */
 .charts-container {
+  gap: 24px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
