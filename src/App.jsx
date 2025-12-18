@@ -18,27 +18,46 @@ const App = () => {
   const [warnAlert, setWarnAlert] = useState('');
   const [loading, setLoading] = useState(true); // first-load only
 
-  // Fetch ONCE
+  // 1) Initial fetch with offline support
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+
+    async function bootstrap() {
       try {
-        const evts = await getEvents();
-        if (cancelled) return;
-        setAllEvents(evts);
-        setAllLocations(extractLocations(evts));
+        if (!navigator.onLine) {
+          // Load from cache when offline
+          const cached = localStorage.getItem('lastEvents');
+          if (cached && !cancelled) {
+            const parsed = JSON.parse(cached);
+            setAllEvents(parsed);
+            setAllLocations(extractLocations(parsed));
+          }
+        } else {
+          // Online: fetch, then cache for future offline usage
+          const evts = await getEvents();
+          if (!cancelled && Array.isArray(evts)) {
+            setAllEvents(evts);
+            setAllLocations(extractLocations(evts));
+            try {
+              localStorage.setItem('lastEvents', JSON.stringify(evts));
+            } catch {}
+          }
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
-    })();
+    }
+
+    bootstrap();
     return () => { cancelled = true; };
   }, []);
 
-  // Derive visible events + alerts
+  // 2) Derive visible events + alerts
   useEffect(() => {
     if (loading || allEvents.length === 0) {
       setEvents([]);
       setInfoAlert('');
+      setWarnAlert(navigator.onLine ? '' : 'You are offline. Showing cached events.');
       return;
     }
 
@@ -79,7 +98,9 @@ const App = () => {
         setErrorAlert={setErrorAlert}
       />
 
-      <EventList events={events} isLoading={loading} />
+      {/* If you still see any stray "Loading events..." text, it's coming from CSS/markup elsewhere. We no longer render a loader here. */}
+
+      <EventList events={events} />
     </div>
   );
 };
