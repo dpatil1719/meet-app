@@ -8,7 +8,6 @@ const colors = ['#ef4444', '#60a5fa', '#a78bfa', '#34d399', '#f59e0b']; // React
 
 export default function EventGenresChart({ events = [] }) {
   const [data, setData] = useState([]);
-
   const genres = ['React', 'JavaScript', 'Node', 'Angular', 'jQuery'];
 
   const getData = () =>
@@ -17,14 +16,13 @@ export default function EventGenresChart({ events = [] }) {
         name: genre,
         value: events.filter((e) => e.summary?.toLowerCase().includes(genre.toLowerCase())).length,
       }))
-      .filter((d) => d.value > 0); // hide zero-slice entries to avoid tiny/overlapping labels
+      .filter((d) => d.value > 0);
 
   useEffect(() => {
     setData(getData());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [`${events}`]);
 
-  // % labels inside slices
   const renderCustomizedLabel = ({ cx, cy, midAngle, outerRadius, percent }) => {
     if (!percent) return null;
     const RAD = Math.PI / 180;
@@ -39,13 +37,13 @@ export default function EventGenresChart({ events = [] }) {
   };
 
   return (
-    <ResponsiveContainer width="100%" height={340}>
-      <PieChart margin={{ top: 0, right: 0, bottom: 42, left: 0 }}>
+    <ResponsiveContainer width="100%" height={400}>
+      <PieChart margin={{ top: 0, right: 0, bottom: 48, left: 0 }}>
         <Pie
           data={data}
           dataKey="value"
           nameKey="name"
-          outerRadius={110}
+          outerRadius={120}
           labelLine={false}
           label={renderCustomizedLabel}
           isAnimationActive={false}
@@ -54,14 +52,7 @@ export default function EventGenresChart({ events = [] }) {
             <Cell key={i} fill={colors[i % colors.length]} />
           ))}
         </Pie>
-
-        {/* Legend pushed down so it never overlaps the pie */}
-        <Legend
-          verticalAlign="bottom"
-          align="center"
-          wrapperStyle={{ marginTop: 14 }}
-          iconType="circle"
-        />
+        <Legend verticalAlign="bottom" align="center" wrapperStyle={{ marginTop: 16 }} iconType="circle" />
         <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151' }} />
       </PieChart>
     </ResponsiveContainer>

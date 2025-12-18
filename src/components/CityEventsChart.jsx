@@ -14,7 +14,7 @@ export default function CityEventsChart({ allLocations = [], events = [] }) {
         const city = location.split(/, | - /)[0];
         return { city, count };
       })
-      .filter((d) => d.count > 0); // hide zero-count cities (keeps chart clean)
+      .filter((d) => d.count > 0);
 
   useEffect(() => {
     setData(getData());
@@ -22,15 +22,15 @@ export default function CityEventsChart({ allLocations = [], events = [] }) {
   }, [`${events}`, `${allLocations}`]);
 
   return (
-    <ResponsiveContainer width="100%" height={340}>
-      <ScatterChart margin={{ top: 10, right: 20, bottom: 70, left: -10 }}>
+    <ResponsiveContainer width="100%" height={400}>
+      <ScatterChart margin={{ top: 10, right: 20, bottom: 76, left: 0 }}>
         <CartesianGrid stroke="#3a3a3a" />
         <XAxis
           type="category"
           dataKey="city"
           angle={60}
           interval={0}
-          tick={{ dx: 16, dy: 36, fontSize: 12, fill: '#cbd5e1' }}
+          tick={{ dx: 18, dy: 40, fontSize: 12, fill: '#cbd5e1' }}
         />
         <YAxis
           type="number"
@@ -40,7 +40,6 @@ export default function CityEventsChart({ allLocations = [], events = [] }) {
           tick={{ fill: '#cbd5e1' }}
         />
         <Tooltip contentStyle={{ background: '#111827', border: '1px solid #374151' }} />
-        {/* Bright cyan markers so they stand out on dark */}
         <Scatter name="Events per city" data={data} fill="#22d3ee" fillOpacity={0.95} />
       </ScatterChart>
     </ResponsiveContainer>

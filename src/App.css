@@ -237,3 +237,24 @@ button:hover { background: rgba(255,255,255,0.12); }
 .recharts-legend-wrapper {
   margin-top: 10px; /* safety in case wrapperStyle is ignored */
 }
+
+/* Give the whole app a wider content column on desktop */
+.App{
+  width: min(1200px, 92vw);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Charts side-by-side with extra space */
+.charts-container{
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px;
+  align-items: start;
+}
+
+@media (max-width: 768px){
+  .charts-container{
+    grid-template-columns: 1fr;
+  }
+}
