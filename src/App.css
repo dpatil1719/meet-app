@@ -382,3 +382,11 @@ button:hover { background: rgba(255,255,255,0.12); }
 @media (max-width: 900px) {
   .charts-container { grid-template-columns: 1fr; }
 }
+
+/* Charts layout similar to the screenshot */
+.charts-container { margin-top: 16px; }
+@media (max-width: 900px) {
+  .charts-container {
+    grid-template-columns: 1fr !important;
+  }
+}
