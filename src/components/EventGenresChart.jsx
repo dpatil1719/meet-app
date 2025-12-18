@@ -8,19 +8,16 @@ import {
   Tooltip,
 } from "recharts";
 
-/**
- * We keep a fixed order of genres but match case-insensitively
- * and allow "Angular" to also catch "AngularJS".
- */
-const GENRES = ["React", "JavaScript", "Node", "Angular", "jQuery"];
+/** Fixed order so colors & legend are stable */
+const GENRES = ["Angular", "JavaScript", "Node", "React", "jQuery"];
 
-// pleasant, high-contrast colors (works on dark and light)
+/** Colors to match your screenshot (green, blue, purple, orange, red) */
 const COLOR_BY = {
-  React: "#ef4444",      // red-500
-  JavaScript: "#22c55e", // emerald-500
-  Node: "#3b82f6",       // blue-500
-  Angular: "#a855f7",    // purple-500
-  jQuery: "#f59e0b",     // amber-500
+  Angular:    "#22c55e",
+  JavaScript: "#3b82f6",
+  Node:       "#8b5cf6",
+  React:      "#f59e0b",
+  jQuery:     "#ef4444",
 };
 
 export default function EventGenresChart({ events = [] }) {
@@ -29,49 +26,50 @@ export default function EventGenresChart({ events = [] }) {
   const normalized = useMemo(
     () =>
       (events || []).map((e) => ({
-        summary: (e?.summary || "").toLowerCase(),
+        summary: String(e?.summary || "").toLowerCase(),
       })),
     [events]
   );
 
-  const getData = () =>
+  const buildData = () =>
     GENRES.map((g) => {
-      const key = g.toLowerCase();
-      const count = normalized.filter((e) => {
-        // treat "AngularJS" as Angular too
-        if (key === "angular") return e.summary.includes("angular");
-        return e.summary.includes(key);
-      }).length;
-      return { name: g, value: count };
-    }).filter((d) => d.value > 0); // hide 0-slices (especially on localhost)
+      const k = g.toLowerCase();
+      const isAngular = k === "angular";
+      const value = normalized.filter((e) =>
+        isAngular ? e.summary.includes("angular") : e.summary.includes(k)
+      ).length;
+      return { name: g, value };
+    });
 
   useEffect(() => {
-    // stringify to force update when array identity doesn't change
-    setData(getData());
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    setData(buildData());
+    // stringify to ensure updates when array identity is stable
   }, [JSON.stringify(events)]);
 
-  // readable outside labels (genre + percent)
-  const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
-    if (!data.length || percent === 0) return null;
+  // Inside-slice % labels (white text with subtle dark outline for readability)
+  const renderInsidePercent = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
+    if (!percent) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius * 1.22; // push labels out so they never collide the pie
+    const r = innerRadius + (outerRadius - innerRadius) * 0.5;
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
-    const name = data[index].name;
-    const color = COLOR_BY[name] || "#e5e7eb";
+    const text = `${(percent * 100).toFixed(0)}%`;
     return (
-      <text
-        x={x}
-        y={y}
-        fill={color}
-        fontSize={14}
-        fontWeight={600}
-        textAnchor={x > cx ? "start" : "end"}
-        dominantBaseline="central"
-      >
-        {`${name} ${(percent * 100).toFixed(0)}%`}
-      </text>
+      <>
+        <text
+          x={x} y={y} textAnchor="middle" dominantBaseline="central"
+          fill="rgba(0,0,0,.45)" stroke="rgba(0,0,0,.45)" strokeWidth="3"
+          style={{ paintOrder: "stroke" }}
+        >
+          {text}
+        </text>
+        <text
+          x={x} y={y} textAnchor="middle" dominantBaseline="central"
+          fill="#ffffff" fontWeight="700"
+        >
+          {text}
+        </text>
+      </>
     );
   };
 
@@ -84,19 +82,31 @@ export default function EventGenresChart({ events = [] }) {
           nameKey="name"
           outerRadius={120}
           labelLine={false}
-          label={renderLabel}
+          label={renderInsidePercent}
           isAnimationActive={false}
         >
-          {data.map((entry) => (
-            <Cell key={entry.name} fill={COLOR_BY[entry.name]} />
+          {GENRES.map((g) => (
+            <Cell key={g} fill={COLOR_BY[g]} />
           ))}
         </Pie>
-        <Legend verticalAlign="bottom" align="center" />
+
+        {/* Fixed legend order/colors to always match the screenshot */}
+        <Legend
+          verticalAlign="bottom"
+          align="left"
+          payload={GENRES.map((g) => ({
+            value: g,
+            type: "square",
+            color: COLOR_BY[g],
+            id: g,
+          }))}
+        />
+
         <Tooltip
           cursor={{ fill: "transparent" }}
           contentStyle={{
-            background: "rgba(17,17,17,.92)",
-            border: "1px solid rgba(255,255,255,.12)",
+            background: "rgba(17,17,17,.9)",
+            border: "1px solid rgba(255,255,255,.15)",
             color: "#fff",
           }}
         />

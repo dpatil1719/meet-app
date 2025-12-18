@@ -414,3 +414,20 @@ button:hover { background: rgba(255,255,255,0.12); }
 .recharts-legend-item-text{
   color: rgba(255,255,255,.9) !important;
 }
+
+/* Charts side-by-side, responsive */
+.charts-container{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items:center;
+  margin: 8px 0 16px;
+}
+@media (max-width: 900px){
+  .charts-container{ grid-template-columns: 1fr; }
+}
+
+/* Legend text visibility on dark backgrounds */
+.recharts-legend-item-text{
+  color: rgba(255,255,255,.9) !important;
+}
