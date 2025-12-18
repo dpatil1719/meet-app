@@ -397,3 +397,20 @@ button:hover { background: rgba(255,255,255,0.12); }
     grid-template-columns: 1fr !important;
   }
 }
+
+/* --- charts layout --- */
+.charts-container{
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 28px;
+  align-items:center;
+  margin: 8px 0 16px;
+}
+@media (max-width: 900px){
+  .charts-container{ grid-template-columns: 1fr; }
+}
+
+/* make Recharts legend readable on dark theme */
+.recharts-legend-item-text{
+  color: rgba(255,255,255,.9) !important;
+}

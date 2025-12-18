@@ -1,5 +1,4 @@
-// src/components/EventGenresChart.jsx
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   ResponsiveContainer,
   PieChart,
@@ -9,91 +8,99 @@ import {
   Tooltip,
 } from "recharts";
 
-// Canonical genres and robust matchers
-const GENRES = ["React", "JavaScript", "Node", "jQuery", "Angular"];
-const MATCHERS = {
-  React: /(react)/i,
-  JavaScript: /(javascript|\bjs\b|typescript|\bts\b)/i,
-  Node: /(node(\.js)?)/i,
-  jQuery: /(jquery)/i,
-  Angular: /(angular)/i,
+/**
+ * We keep a fixed order of genres but match case-insensitively
+ * and allow "Angular" to also catch "AngularJS".
+ */
+const GENRES = ["React", "JavaScript", "Node", "Angular", "jQuery"];
+
+// pleasant, high-contrast colors (works on dark and light)
+const COLOR_BY = {
+  React: "#ef4444",      // red-500
+  JavaScript: "#22c55e", // emerald-500
+  Node: "#3b82f6",       // blue-500
+  Angular: "#a855f7",    // purple-500
+  jQuery: "#f59e0b",     // amber-500
 };
 
-// Add a distinct "Other" slice to ensure the pie never disappears
-const COLORS = ["#ef4444", "#22c55e", "#3b82f6", "#eab308", "#a855f7", "#9ca3af"]; // last = Other
-
 export default function EventGenresChart({ events = [] }) {
-  // Build data from the currently visible events
-  const baseData = useMemo(() => {
-    return GENRES.map((g) => {
-      const re = MATCHERS[g];
-      const value = events.filter((e) => re.test(e?.summary || "")).length;
-      return { name: g, value };
-    });
-  }, [events]);
+  const [data, setData] = useState([]);
 
-  const countsSum = baseData.reduce((s, d) => s + d.value, 0);
-  const otherCount = Math.max(0, events.length - countsSum);
+  const normalized = useMemo(
+    () =>
+      (events || []).map((e) => ({
+        summary: (e?.summary || "").toLowerCase(),
+      })),
+    [events]
+  );
 
-  // Always render: include "Other" when needed
-  const data = otherCount > 0 ? [...baseData, { name: "Other", value: otherCount }] : baseData;
+  const getData = () =>
+    GENRES.map((g) => {
+      const key = g.toLowerCase();
+      const count = normalized.filter((e) => {
+        // treat "AngularJS" as Angular too
+        if (key === "angular") return e.summary.includes("angular");
+        return e.summary.includes(key);
+      }).length;
+      return { name: g, value: count };
+    }).filter((d) => d.value > 0); // hide 0-slices (especially on localhost)
 
-  // Custom outside labels with generous margins so "JavaScript" doesn't clip
+  useEffect(() => {
+    // stringify to force update when array identity doesn't change
+    setData(getData());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [JSON.stringify(events)]);
+
+  // readable outside labels (genre + percent)
   const renderLabel = ({ cx, cy, midAngle, outerRadius, percent, index }) => {
-    if (!percent) return null;
+    if (!data.length || percent === 0) return null;
     const RAD = Math.PI / 180;
-    const r = outerRadius + 18;
+    const r = outerRadius * 1.22; // push labels out so they never collide the pie
     const x = cx + r * Math.cos(-midAngle * RAD);
     const y = cy + r * Math.sin(-midAngle * RAD);
+    const name = data[index].name;
+    const color = COLOR_BY[name] || "#e5e7eb";
     return (
       <text
         x={x}
         y={y}
+        fill={color}
         fontSize={14}
-        fontWeight={700}
-        fill="#e5e7eb"
+        fontWeight={600}
         textAnchor={x > cx ? "start" : "end"}
         dominantBaseline="central"
       >
-        {`${data[index].name} ${(percent * 100).toFixed(0)}%`}
+        {`${name} ${(percent * 100).toFixed(0)}%`}
       </text>
     );
   };
 
-  // If absolutely no events, show a friendly placeholder instead of a blank area
-  if (events.length === 0) {
-    return (
-      <div className="chart-shell chart-shell--empty">
-        <p>No events to visualize.</p>
-      </div>
-    );
-  }
-
   return (
-    <div className="chart-shell">
-      <ResponsiveContainer width="100%" height={360} className="charts-rc">
-        <PieChart margin={{ top: 8, right: 160, bottom: 8, left: 160 }}>
-          <Pie
-            data={data}
-            dataKey="value"
-            nameKey="name"
-            outerRadius={120}
-            labelLine={false}
-            label={renderLabel}
-            isAnimationActive
-          >
-            {data.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Legend verticalAlign="bottom" align="center" />
-          <Tooltip
-            formatter={(v, n) => [`${v}`, n]}
-            contentStyle={{ background: "#111827", border: "1px solid #374151", color: "#e5e7eb" }}
-            itemStyle={{ color: "#e5e7eb" }}
-          />
-        </PieChart>
-      </ResponsiveContainer>
-    </div>
+    <ResponsiveContainer width="100%" height={340}>
+      <PieChart>
+        <Pie
+          data={data}
+          dataKey="value"
+          nameKey="name"
+          outerRadius={120}
+          labelLine={false}
+          label={renderLabel}
+          isAnimationActive={false}
+        >
+          {data.map((entry) => (
+            <Cell key={entry.name} fill={COLOR_BY[entry.name]} />
+          ))}
+        </Pie>
+        <Legend verticalAlign="bottom" align="center" />
+        <Tooltip
+          cursor={{ fill: "transparent" }}
+          contentStyle={{
+            background: "rgba(17,17,17,.92)",
+            border: "1px solid rgba(255,255,255,.12)",
+            color: "#fff",
+          }}
+        />
+      </PieChart>
+    </ResponsiveContainer>
   );
 }
