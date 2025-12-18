@@ -218,3 +218,22 @@ button:hover { background: rgba(255,255,255,0.12); }
 @media (max-width: 780px){
   .charts-container{ grid-template-columns: 1fr; }
 }
+
+/* ----- Charts layout & spacing ----- */
+.charts-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .charts-container {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Recharts tweaks for dark theme */
+.recharts-legend-wrapper {
+  margin-top: 10px; /* safety in case wrapperStyle is ignored */
+}
